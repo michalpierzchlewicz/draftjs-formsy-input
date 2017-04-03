@@ -54,12 +54,22 @@ var App = (function (_React$Component) {
 				_react2['default'].createElement(
 					_formsyReact.Form,
 					{
-						onValidSubmit: this._validSubmit.bind(this)
+						onValidSubmit: this._validSubmit.bind(this),
+						onInvalidSubmit: function (data) {
+							return console.log('onInvalidSubmit data', data);
+						}
 					},
 					_react2['default'].createElement(_draftjsFormsyInput2['default'], {
 						name: 'testInput',
 						label: 'Example input:',
 						help: 'This is input help text.',
+						style: editorStyle
+					}),
+					_react2['default'].createElement(_draftjsFormsyInput2['default'], {
+						name: 'testInput2',
+						label: 'Example input 2:',
+						help: 'This is input help text.',
+						required: true,
 						style: editorStyle
 					}),
 					_react2['default'].createElement(
