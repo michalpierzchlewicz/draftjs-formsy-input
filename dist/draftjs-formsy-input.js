@@ -1,4 +1,1060 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.DraftjsFormsyInput = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function combineOrderedStyles(customMap, defaults) {
+  if (customMap == null) {
+    return defaults;
+  }
+
+  var _defaults = _slicedToArray(defaults, 2);
+
+  var defaultStyleMap = _defaults[0];
+  var defaultStyleOrder = _defaults[1];
+
+  var styleMap = _extends({}, defaultStyleMap);
+  var styleOrder = [].concat(_toConsumableArray(defaultStyleOrder));
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = Object.keys(customMap)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var _styleName = _step.value;
+
+      if (defaultStyleMap.hasOwnProperty(_styleName)) {
+        var defaultStyles = defaultStyleMap[_styleName];
+        styleMap[_styleName] = _extends({}, defaultStyles, customMap[_styleName]);
+      } else {
+        styleMap[_styleName] = customMap[_styleName];
+        styleOrder.push(_styleName);
+      }
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  return [styleMap, styleOrder];
+}
+
+exports.default = combineOrderedStyles;
+},{}],2:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+
+// Lifted from: https://github.com/facebook/react/blob/master/src/renderers/dom/shared/HTMLDOMPropertyConfig.js
+var ATTR_NAME_MAP = {
+  acceptCharset: 'accept-charset',
+  className: 'class',
+  htmlFor: 'for',
+  httpEquiv: 'http-equiv'
+};
+
+function normalizeAttributes(attributes) {
+  if (attributes == null) {
+    return attributes;
+  }
+  var normalized = {};
+  var didNormalize = false;
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = Object.keys(attributes)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var name = _step.value;
+
+      var newName = name;
+      if (ATTR_NAME_MAP.hasOwnProperty(name)) {
+        newName = ATTR_NAME_MAP[name];
+        didNormalize = true;
+      }
+      normalized[newName] = attributes[name];
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  return didNormalize ? normalized : attributes;
+}
+
+exports.default = normalizeAttributes;
+},{}],3:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _CSSProperty = require('react-dom/lib/CSSProperty');
+
+var VENDOR_PREFIX = /^(moz|ms|o|webkit)-/;
+
+var NUMERIC_STRING = /^\d+$/;
+var UPPERCASE_PATTERN = /([A-Z])/g;
+
+// Lifted from: https://github.com/facebook/react/blob/master/src/renderers/dom/shared/CSSPropertyOperations.js
+function processStyleName(name) {
+  return name.replace(UPPERCASE_PATTERN, '-$1').toLowerCase().replace(VENDOR_PREFIX, '-$1-');
+}
+
+// Lifted from: https://github.com/facebook/react/blob/master/src/renderers/dom/shared/dangerousStyleValue.js
+function processStyleValue(name, value) {
+  var isNumeric = void 0;
+  if (typeof value === 'string') {
+    isNumeric = NUMERIC_STRING.test(value);
+  } else {
+    isNumeric = true;
+    value = String(value);
+  }
+  if (!isNumeric || value === '0' || _CSSProperty.isUnitlessNumber[name] === true) {
+    return value;
+  } else {
+    return value + 'px';
+  }
+}
+
+function styleToCSS(styleDescr) {
+  return Object.keys(styleDescr).map(function (name) {
+    var styleValue = processStyleValue(name, styleDescr[name]);
+    var styleName = processStyleName(name);
+    return styleName + ': ' + styleValue;
+  }).join('; ');
+}
+
+exports.default = styleToCSS;
+},{"react-dom/lib/CSSProperty":159}],4:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _stateToHTML = require('./stateToHTML');
+
+Object.defineProperty(exports, 'stateToHTML', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_stateToHTML).default;
+  }
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+},{"./stateToHTML":5}],5:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _DEFAULT_STYLE_MAP, _ENTITY_ATTR_MAP, _DATA_TO_ATTR;
+
+exports.default = stateToHTML;
+
+var _combineOrderedStyles3 = require('./helpers/combineOrderedStyles');
+
+var _combineOrderedStyles4 = _interopRequireDefault(_combineOrderedStyles3);
+
+var _normalizeAttributes = require('./helpers/normalizeAttributes');
+
+var _normalizeAttributes2 = _interopRequireDefault(_normalizeAttributes);
+
+var _styleToCSS = require('./helpers/styleToCSS');
+
+var _styleToCSS2 = _interopRequireDefault(_styleToCSS);
+
+var _draftJs = require('draft-js');
+
+var _draftJsUtils = require('draft-js-utils');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var BOLD = _draftJsUtils.INLINE_STYLE.BOLD;
+var CODE = _draftJsUtils.INLINE_STYLE.CODE;
+var ITALIC = _draftJsUtils.INLINE_STYLE.ITALIC;
+var STRIKETHROUGH = _draftJsUtils.INLINE_STYLE.STRIKETHROUGH;
+var UNDERLINE = _draftJsUtils.INLINE_STYLE.UNDERLINE;
+
+
+var INDENT = '  ';
+var BREAK = '<br>';
+var DATA_ATTRIBUTE = /^data-([a-z0-9-]+)$/;
+
+var DEFAULT_STYLE_MAP = (_DEFAULT_STYLE_MAP = {}, _defineProperty(_DEFAULT_STYLE_MAP, BOLD, { element: 'strong' }), _defineProperty(_DEFAULT_STYLE_MAP, CODE, { element: 'code' }), _defineProperty(_DEFAULT_STYLE_MAP, ITALIC, { element: 'em' }), _defineProperty(_DEFAULT_STYLE_MAP, STRIKETHROUGH, { element: 'del' }), _defineProperty(_DEFAULT_STYLE_MAP, UNDERLINE, { element: 'ins' }), _DEFAULT_STYLE_MAP);
+
+// Order: inner-most style to outer-most.
+// Examle: <em><strong>foo</strong></em>
+var DEFAULT_STYLE_ORDER = [BOLD, ITALIC, UNDERLINE, STRIKETHROUGH, CODE];
+
+// Map entity data to element attributes.
+var ENTITY_ATTR_MAP = (_ENTITY_ATTR_MAP = {}, _defineProperty(_ENTITY_ATTR_MAP, _draftJsUtils.ENTITY_TYPE.LINK, { url: 'href', rel: 'rel', target: 'target', title: 'title', className: 'class' }), _defineProperty(_ENTITY_ATTR_MAP, _draftJsUtils.ENTITY_TYPE.IMAGE, { src: 'src', height: 'height', width: 'width', alt: 'alt', className: 'class' }), _ENTITY_ATTR_MAP);
+
+// Map entity data to element attributes.
+var DATA_TO_ATTR = (_DATA_TO_ATTR = {}, _defineProperty(_DATA_TO_ATTR, _draftJsUtils.ENTITY_TYPE.LINK, function (entityType, entity) {
+  var attrMap = ENTITY_ATTR_MAP.hasOwnProperty(entityType) ? ENTITY_ATTR_MAP[entityType] : {};
+  var data = entity.getData();
+  var attrs = {};
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = Object.keys(data)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var dataKey = _step.value;
+
+      var dataValue = data[dataKey];
+      if (attrMap.hasOwnProperty(dataKey)) {
+        var attrKey = attrMap[dataKey];
+        attrs[attrKey] = dataValue;
+      } else if (DATA_ATTRIBUTE.test(dataKey)) {
+        attrs[dataKey] = dataValue;
+      }
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  return attrs;
+}), _defineProperty(_DATA_TO_ATTR, _draftJsUtils.ENTITY_TYPE.IMAGE, function (entityType, entity) {
+  var attrMap = ENTITY_ATTR_MAP.hasOwnProperty(entityType) ? ENTITY_ATTR_MAP[entityType] : {};
+  var data = entity.getData();
+  var attrs = {};
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
+
+  try {
+    for (var _iterator2 = Object.keys(data)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var dataKey = _step2.value;
+
+      var dataValue = data[dataKey];
+      if (attrMap.hasOwnProperty(dataKey)) {
+        var attrKey = attrMap[dataKey];
+        attrs[attrKey] = dataValue;
+      } else if (DATA_ATTRIBUTE.test(dataKey)) {
+        attrs[dataKey] = dataValue;
+      }
+    }
+  } catch (err) {
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
+      }
+    } finally {
+      if (_didIteratorError2) {
+        throw _iteratorError2;
+      }
+    }
+  }
+
+  return attrs;
+}), _DATA_TO_ATTR);
+
+// The reason this returns an array is because a single block might get wrapped
+// in two tags.
+function getTags(blockType) {
+  switch (blockType) {
+    case _draftJsUtils.BLOCK_TYPE.HEADER_ONE:
+      return ['h1'];
+    case _draftJsUtils.BLOCK_TYPE.HEADER_TWO:
+      return ['h2'];
+    case _draftJsUtils.BLOCK_TYPE.HEADER_THREE:
+      return ['h3'];
+    case _draftJsUtils.BLOCK_TYPE.HEADER_FOUR:
+      return ['h4'];
+    case _draftJsUtils.BLOCK_TYPE.HEADER_FIVE:
+      return ['h5'];
+    case _draftJsUtils.BLOCK_TYPE.HEADER_SIX:
+      return ['h6'];
+    case _draftJsUtils.BLOCK_TYPE.UNORDERED_LIST_ITEM:
+    case _draftJsUtils.BLOCK_TYPE.ORDERED_LIST_ITEM:
+      return ['li'];
+    case _draftJsUtils.BLOCK_TYPE.BLOCKQUOTE:
+      return ['blockquote'];
+    case _draftJsUtils.BLOCK_TYPE.CODE:
+      return ['pre', 'code'];
+    case _draftJsUtils.BLOCK_TYPE.ATOMIC:
+      return ['figure'];
+    default:
+      return ['p'];
+  }
+}
+
+function getWrapperTag(blockType) {
+  switch (blockType) {
+    case _draftJsUtils.BLOCK_TYPE.UNORDERED_LIST_ITEM:
+      return 'ul';
+    case _draftJsUtils.BLOCK_TYPE.ORDERED_LIST_ITEM:
+      return 'ol';
+    default:
+      return null;
+  }
+}
+
+var MarkupGenerator = function () {
+  // These are related to state.
+  function MarkupGenerator(contentState, options) {
+    _classCallCheck(this, MarkupGenerator);
+
+    if (options == null) {
+      options = {};
+    }
+    this.contentState = contentState;
+    this.options = options;
+
+    var _combineOrderedStyles = (0, _combineOrderedStyles4.default)(options.inlineStyles, [DEFAULT_STYLE_MAP, DEFAULT_STYLE_ORDER]);
+
+    var _combineOrderedStyles2 = _slicedToArray(_combineOrderedStyles, 2);
+
+    var inlineStyles = _combineOrderedStyles2[0];
+    var styleOrder = _combineOrderedStyles2[1];
+
+    this.inlineStyles = inlineStyles;
+    this.styleOrder = styleOrder;
+  }
+  // These are related to user-defined options.
+
+
+  _createClass(MarkupGenerator, [{
+    key: 'generate',
+    value: function generate() {
+      this.output = [];
+      this.blocks = this.contentState.getBlocksAsArray();
+      this.totalBlocks = this.blocks.length;
+      this.currentBlock = 0;
+      this.indentLevel = 0;
+      this.wrapperTag = null;
+      while (this.currentBlock < this.totalBlocks) {
+        this.processBlock();
+      }
+      this.closeWrapperTag();
+      return this.output.join('').trim();
+    }
+  }, {
+    key: 'processBlock',
+    value: function processBlock() {
+      var blockRenderers = this.options.blockRenderers;
+
+      var block = this.blocks[this.currentBlock];
+      var blockType = block.getType();
+      var newWrapperTag = getWrapperTag(blockType);
+      if (this.wrapperTag !== newWrapperTag) {
+        if (this.wrapperTag) {
+          this.closeWrapperTag();
+        }
+        if (newWrapperTag) {
+          this.openWrapperTag(newWrapperTag);
+        }
+      }
+      this.indent();
+      // Allow blocks to be rendered using a custom renderer.
+      var customRenderer = blockRenderers != null && blockRenderers.hasOwnProperty(blockType) ? blockRenderers[blockType] : null;
+      var customRendererOutput = customRenderer ? customRenderer(block) : null;
+      // Renderer can return null, which will cause processing to continue as normal.
+      if (customRendererOutput != null) {
+        this.output.push(customRendererOutput);
+        this.output.push('\n');
+        this.currentBlock += 1;
+        return;
+      }
+      this.writeStartTag(block);
+      this.output.push(this.renderBlockContent(block));
+      // Look ahead and see if we will nest list.
+      var nextBlock = this.getNextBlock();
+      if (canHaveDepth(blockType) && nextBlock && nextBlock.getDepth() === block.getDepth() + 1) {
+        this.output.push('\n');
+        // This is a litle hacky: temporarily stash our current wrapperTag and
+        // render child list(s).
+        var thisWrapperTag = this.wrapperTag;
+        this.wrapperTag = null;
+        this.indentLevel += 1;
+        this.currentBlock += 1;
+        this.processBlocksAtDepth(nextBlock.getDepth());
+        this.wrapperTag = thisWrapperTag;
+        this.indentLevel -= 1;
+        this.indent();
+      } else {
+        this.currentBlock += 1;
+      }
+      this.writeEndTag(block);
+    }
+  }, {
+    key: 'processBlocksAtDepth',
+    value: function processBlocksAtDepth(depth) {
+      var block = this.blocks[this.currentBlock];
+      while (block && block.getDepth() === depth) {
+        this.processBlock();
+        block = this.blocks[this.currentBlock];
+      }
+      this.closeWrapperTag();
+    }
+  }, {
+    key: 'getNextBlock',
+    value: function getNextBlock() {
+      return this.blocks[this.currentBlock + 1];
+    }
+  }, {
+    key: 'writeStartTag',
+    value: function writeStartTag(block) {
+      var tags = getTags(block.getType());
+
+      var attrString = void 0;
+      if (this.options.blockStyleFn) {
+        var _ref = this.options.blockStyleFn(block) || {};
+
+        var _attributes = _ref.attributes;
+        var _style = _ref.style;
+        // Normalize `className` -> `class`, etc.
+
+        _attributes = (0, _normalizeAttributes2.default)(_attributes);
+        if (_style != null) {
+          var styleAttr = (0, _styleToCSS2.default)(_style);
+          _attributes = _attributes == null ? { style: styleAttr } : _extends({}, _attributes, { style: styleAttr });
+        }
+        attrString = stringifyAttrs(_attributes);
+      } else {
+        attrString = '';
+      }
+
+      var _iteratorNormalCompletion3 = true;
+      var _didIteratorError3 = false;
+      var _iteratorError3 = undefined;
+
+      try {
+        for (var _iterator3 = tags[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          var tag = _step3.value;
+
+          this.output.push('<' + tag + attrString + '>');
+        }
+      } catch (err) {
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion3 && _iterator3.return) {
+            _iterator3.return();
+          }
+        } finally {
+          if (_didIteratorError3) {
+            throw _iteratorError3;
+          }
+        }
+      }
+    }
+  }, {
+    key: 'writeEndTag',
+    value: function writeEndTag(block) {
+      var tags = getTags(block.getType());
+      if (tags.length === 1) {
+        this.output.push('</' + tags[0] + '>\n');
+      } else {
+        var output = [];
+        var _iteratorNormalCompletion4 = true;
+        var _didIteratorError4 = false;
+        var _iteratorError4 = undefined;
+
+        try {
+          for (var _iterator4 = tags[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+            var tag = _step4.value;
+
+            output.unshift('</' + tag + '>');
+          }
+        } catch (err) {
+          _didIteratorError4 = true;
+          _iteratorError4 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion4 && _iterator4.return) {
+              _iterator4.return();
+            }
+          } finally {
+            if (_didIteratorError4) {
+              throw _iteratorError4;
+            }
+          }
+        }
+
+        this.output.push(output.join('') + '\n');
+      }
+    }
+  }, {
+    key: 'openWrapperTag',
+    value: function openWrapperTag(wrapperTag) {
+      this.wrapperTag = wrapperTag;
+      this.indent();
+      this.output.push('<' + wrapperTag + '>\n');
+      this.indentLevel += 1;
+    }
+  }, {
+    key: 'closeWrapperTag',
+    value: function closeWrapperTag() {
+      var wrapperTag = this.wrapperTag;
+
+      if (wrapperTag) {
+        this.indentLevel -= 1;
+        this.indent();
+        this.output.push('</' + wrapperTag + '>\n');
+        this.wrapperTag = null;
+      }
+    }
+  }, {
+    key: 'indent',
+    value: function indent() {
+      this.output.push(INDENT.repeat(this.indentLevel));
+    }
+  }, {
+    key: 'renderBlockContent',
+    value: function renderBlockContent(block) {
+      var _this = this;
+
+      var blockType = block.getType();
+      var text = block.getText();
+      if (text === '') {
+        // Prevent element collapse if completely empty.
+        return BREAK;
+      }
+      text = this.preserveWhitespace(text);
+      var charMetaList = block.getCharacterList();
+      var entityPieces = (0, _draftJsUtils.getEntityRanges)(text, charMetaList);
+      return entityPieces.map(function (_ref2) {
+        var _ref3 = _slicedToArray(_ref2, 2);
+
+        var entityKey = _ref3[0];
+        var stylePieces = _ref3[1];
+
+        var content = stylePieces.map(function (_ref4) {
+          var _ref5 = _slicedToArray(_ref4, 2);
+
+          var text = _ref5[0];
+          var styleSet = _ref5[1];
+
+          var content = encodeContent(text);
+          var _iteratorNormalCompletion5 = true;
+          var _didIteratorError5 = false;
+          var _iteratorError5 = undefined;
+
+          try {
+            for (var _iterator5 = _this.styleOrder[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+              var _styleName = _step5.value;
+
+              // If our block type is CODE then don't wrap inline code elements.
+              if (_styleName === CODE && blockType === _draftJsUtils.BLOCK_TYPE.CODE) {
+                continue;
+              }
+              if (styleSet.has(_styleName)) {
+                var _inlineStyles$_styleN = _this.inlineStyles[_styleName];
+                var _element = _inlineStyles$_styleN.element;
+                var _attributes2 = _inlineStyles$_styleN.attributes;
+                var _style2 = _inlineStyles$_styleN.style;
+
+                if (_element == null) {
+                  _element = 'span';
+                }
+                // Normalize `className` -> `class`, etc.
+                _attributes2 = (0, _normalizeAttributes2.default)(_attributes2);
+                if (_style2 != null) {
+                  var styleAttr = (0, _styleToCSS2.default)(_style2);
+                  _attributes2 = _attributes2 == null ? { style: styleAttr } : _extends({}, _attributes2, { style: styleAttr });
+                }
+                var attrString = stringifyAttrs(_attributes2);
+                content = '<' + _element + attrString + '>' + content + '</' + _element + '>';
+              }
+            }
+          } catch (err) {
+            _didIteratorError5 = true;
+            _iteratorError5 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                _iterator5.return();
+              }
+            } finally {
+              if (_didIteratorError5) {
+                throw _iteratorError5;
+              }
+            }
+          }
+
+          return content;
+        }).join('');
+        var entity = entityKey ? _draftJs.Entity.get(entityKey) : null;
+        // Note: The `toUpperCase` below is for compatability with some libraries that use lower-case for image blocks.
+        var entityType = entity == null ? null : entity.getType().toUpperCase();
+        if (entityType != null && entityType === _draftJsUtils.ENTITY_TYPE.LINK) {
+          var attrs = DATA_TO_ATTR.hasOwnProperty(entityType) ? DATA_TO_ATTR[entityType](entityType, entity) : null;
+          var attrString = stringifyAttrs(attrs);
+          return '<a' + attrString + '>' + content + '</a>';
+        } else if (entityType != null && entityType === _draftJsUtils.ENTITY_TYPE.IMAGE) {
+          var _attrs = DATA_TO_ATTR.hasOwnProperty(entityType) ? DATA_TO_ATTR[entityType](entityType, entity) : null;
+          var _attrString = stringifyAttrs(_attrs);
+          return '<img' + _attrString + '/>';
+        } else {
+          return content;
+        }
+      }).join('');
+    }
+  }, {
+    key: 'preserveWhitespace',
+    value: function preserveWhitespace(text) {
+      var length = text.length;
+      // Prevent leading/trailing/consecutive whitespace collapse.
+      var newText = new Array(length);
+      for (var i = 0; i < length; i++) {
+        if (text[i] === ' ' && (i === 0 || i === length - 1 || text[i - 1] === ' ')) {
+          newText[i] = '\xA0';
+        } else {
+          newText[i] = text[i];
+        }
+      }
+      return newText.join('');
+    }
+  }]);
+
+  return MarkupGenerator;
+}();
+
+function stringifyAttrs(attrs) {
+  if (attrs == null) {
+    return '';
+  }
+  var parts = [];
+  var _iteratorNormalCompletion6 = true;
+  var _didIteratorError6 = false;
+  var _iteratorError6 = undefined;
+
+  try {
+    for (var _iterator6 = Object.keys(attrs)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+      var name = _step6.value;
+
+      var value = attrs[name];
+      if (value != null) {
+        parts.push(' ' + name + '="' + encodeAttr(value + '') + '"');
+      }
+    }
+  } catch (err) {
+    _didIteratorError6 = true;
+    _iteratorError6 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion6 && _iterator6.return) {
+        _iterator6.return();
+      }
+    } finally {
+      if (_didIteratorError6) {
+        throw _iteratorError6;
+      }
+    }
+  }
+
+  return parts.join('');
+}
+
+function canHaveDepth(blockType) {
+  switch (blockType) {
+    case _draftJsUtils.BLOCK_TYPE.UNORDERED_LIST_ITEM:
+    case _draftJsUtils.BLOCK_TYPE.ORDERED_LIST_ITEM:
+      return true;
+    default:
+      return false;
+  }
+}
+
+function encodeContent(text) {
+  return text.split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('\xA0').join('&nbsp;').split('\n').join(BREAK + '\n');
+}
+
+function encodeAttr(text) {
+  return text.split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('"').join('&quot;');
+}
+
+function stateToHTML(content, options) {
+  return new MarkupGenerator(content, options).generate();
+}
+},{"./helpers/combineOrderedStyles":1,"./helpers/normalizeAttributes":2,"./helpers/styleToCSS":3,"draft-js":22,"draft-js-utils":10}],6:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var BLOCK_TYPE = exports.BLOCK_TYPE = {
+  // This is used to represent a normal text block (paragraph).
+  UNSTYLED: 'unstyled',
+  HEADER_ONE: 'header-one',
+  HEADER_TWO: 'header-two',
+  HEADER_THREE: 'header-three',
+  HEADER_FOUR: 'header-four',
+  HEADER_FIVE: 'header-five',
+  HEADER_SIX: 'header-six',
+  UNORDERED_LIST_ITEM: 'unordered-list-item',
+  ORDERED_LIST_ITEM: 'ordered-list-item',
+  BLOCKQUOTE: 'blockquote',
+  PULLQUOTE: 'pullquote',
+  CODE: 'code-block',
+  ATOMIC: 'atomic'
+};
+
+var ENTITY_TYPE = exports.ENTITY_TYPE = {
+  LINK: 'LINK',
+  IMAGE: 'IMAGE'
+};
+
+var INLINE_STYLE = exports.INLINE_STYLE = {
+  BOLD: 'BOLD',
+  CODE: 'CODE',
+  ITALIC: 'ITALIC',
+  STRIKETHROUGH: 'STRIKETHROUGH',
+  UNDERLINE: 'UNDERLINE'
+};
+
+exports.default = {
+  BLOCK_TYPE: BLOCK_TYPE,
+  ENTITY_TYPE: ENTITY_TYPE,
+  INLINE_STYLE: INLINE_STYLE
+};
+},{}],7:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _draftJs = require('draft-js');
+
+var _getSelectedBlocks = require('./getSelectedBlocks');
+
+var _getSelectedBlocks2 = _interopRequireDefault(_getSelectedBlocks);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * Calls a provided `modifier` function with a selection for each
+ * selected block in the current editor selection. Passes through additional
+ * arguments to the modifier.
+ *
+ * Note: At the moment it will retain the original selection and override
+ * possible selection changes from modifiers
+ *
+ * @param  {object} editorState The current draft.js editor state object
+ *
+ * @param  {function} modifier  A modifier function to be executed.
+ *                              Must have the signature (editorState, selection, ...)
+ *
+ * @param  {mixed} ...args      Additional arguments to be passed through to the modifier
+ *
+ * @return {object} The new editor state
+ */
+exports.default = function (editorState, modifier) {
+  for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    args[_key - 2] = arguments[_key];
+  }
+
+  var contentState = editorState.getCurrentContent();
+  var currentSelection = editorState.getSelection();
+
+  var startKey = currentSelection.getStartKey();
+  var endKey = currentSelection.getEndKey();
+  var startOffset = currentSelection.getStartOffset();
+  var endOffset = currentSelection.getEndOffset();
+
+  var isSameBlock = startKey === endKey;
+  var selectedBlocks = (0, _getSelectedBlocks2.default)(contentState, startKey, endKey);
+
+  var finalEditorState = editorState;
+  selectedBlocks.forEach(function (block) {
+    var currentBlockKey = block.getKey();
+    var selectionStart = startOffset;
+    var selectionEnd = endOffset;
+
+    if (currentBlockKey === startKey) {
+      selectionStart = startOffset;
+      selectionEnd = isSameBlock ? endOffset : block.getText().length;
+    } else if (currentBlockKey === endKey) {
+      selectionStart = isSameBlock ? startOffset : 0;
+      selectionEnd = endOffset;
+    } else {
+      selectionStart = 0;
+      selectionEnd = block.getText().length;
+    }
+
+    var selection = new _draftJs.SelectionState({
+      anchorKey: currentBlockKey,
+      anchorOffset: selectionStart,
+      focusKey: currentBlockKey,
+      focusOffset: selectionEnd
+    });
+
+    finalEditorState = modifier.apply(undefined, [finalEditorState, selection].concat(args));
+  });
+
+  return _draftJs.EditorState.forceSelection(finalEditorState, currentSelection);
+};
+},{"./getSelectedBlocks":9,"draft-js":22}],8:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.EMPTY_SET = undefined;
+exports.default = getEntityRanges;
+
+var _immutable = require('immutable');
+
+var EMPTY_SET = exports.EMPTY_SET = new _immutable.OrderedSet();
+function getEntityRanges(text, charMetaList) {
+  var charEntity = null;
+  var prevCharEntity = null;
+  var ranges = [];
+  var rangeStart = 0;
+  for (var i = 0, len = text.length; i < len; i++) {
+    prevCharEntity = charEntity;
+    var meta = charMetaList.get(i);
+    charEntity = meta ? meta.getEntity() : null;
+    if (i > 0 && charEntity !== prevCharEntity) {
+      ranges.push([prevCharEntity, getStyleRanges(text.slice(rangeStart, i), charMetaList.slice(rangeStart, i))]);
+      rangeStart = i;
+    }
+  }
+  ranges.push([charEntity, getStyleRanges(text.slice(rangeStart), charMetaList.slice(rangeStart))]);
+  return ranges;
+}
+
+function getStyleRanges(text, charMetaList) {
+  var charStyle = EMPTY_SET;
+  var prevCharStyle = EMPTY_SET;
+  var ranges = [];
+  var rangeStart = 0;
+  for (var i = 0, len = text.length; i < len; i++) {
+    prevCharStyle = charStyle;
+    var meta = charMetaList.get(i);
+    charStyle = meta ? meta.getStyle() : EMPTY_SET;
+    if (i > 0 && !(0, _immutable.is)(charStyle, prevCharStyle)) {
+      ranges.push([text.slice(rangeStart, i), prevCharStyle]);
+      rangeStart = i;
+    }
+  }
+  ranges.push([text.slice(rangeStart), charStyle]);
+  return ranges;
+}
+},{"immutable":156}],9:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+/**
+ * Returns an array of all `ContentBlock` instances within two block keys
+ *
+ * @param  {object} contentState A draft.js `ContentState` instance
+ * @param  {string} anchorKey    The block key to start searching from
+ * @param  {string} focusKey     The block key until which to search
+ *
+ * @return {array} An array containing the found content blocks
+ */
+exports.default = function (contentState, anchorKey, focusKey) {
+  var isSameBlock = anchorKey === focusKey;
+  var startingBlock = contentState.getBlockForKey(anchorKey);
+
+  if (!startingBlock) {
+    return [];
+  }
+
+  var selectedBlocks = [startingBlock];
+
+  if (!isSameBlock) {
+    var blockKey = anchorKey;
+
+    while (blockKey !== focusKey) {
+      var nextBlock = contentState.getBlockAfter(blockKey);
+
+      if (!nextBlock) {
+        selectedBlocks = [];
+        break;
+      }
+
+      selectedBlocks.push(nextBlock);
+      blockKey = nextBlock.getKey();
+    }
+  }
+
+  return selectedBlocks;
+};
+},{}],10:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _Constants = require('./Constants');
+
+Object.keys(_Constants).forEach(function (key) {
+  if (key === "default" || key === "__esModule") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _Constants[key];
+    }
+  });
+});
+Object.defineProperty(exports, 'Constants', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_Constants).default;
+  }
+});
+
+var _getEntityRanges = require('./getEntityRanges');
+
+Object.defineProperty(exports, 'getEntityRanges', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_getEntityRanges).default;
+  }
+});
+
+var _getSelectedBlocks = require('./getSelectedBlocks');
+
+Object.defineProperty(exports, 'getSelectedBlocks', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_getSelectedBlocks).default;
+  }
+});
+
+var _selectionContainsEntity = require('./selectionContainsEntity');
+
+Object.defineProperty(exports, 'selectionContainsEntity', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_selectionContainsEntity).default;
+  }
+});
+
+var _callModifierForSelectedBlocks = require('./callModifierForSelectedBlocks');
+
+Object.defineProperty(exports, 'callModifierForSelectedBlocks', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_callModifierForSelectedBlocks).default;
+  }
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+},{"./Constants":6,"./callModifierForSelectedBlocks":7,"./getEntityRanges":8,"./getSelectedBlocks":9,"./selectionContainsEntity":11}],11:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _getSelectedBlocks = require('./getSelectedBlocks');
+
+var _getSelectedBlocks2 = _interopRequireDefault(_getSelectedBlocks);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = function (strategy) {
+  return function (editorState, selection) {
+    var contentState = editorState.getCurrentContent();
+    var currentSelection = selection || editorState.getSelection();
+    var startKey = currentSelection.getStartKey();
+    var endKey = currentSelection.getEndKey();
+    var startOffset = currentSelection.getStartOffset();
+    var endOffset = currentSelection.getEndOffset();
+
+    var isSameBlock = startKey === endKey;
+    var selectedBlocks = (0, _getSelectedBlocks2.default)(contentState, startKey, endKey);
+    var entityFound = false;
+
+    // We have to shift the offset to not get false positives when selecting
+    // a character just before or after an entity
+    var finalStartOffset = startOffset + 1;
+    var finalEndOffset = endOffset - 1;
+
+    selectedBlocks.forEach(function (block) {
+      strategy(block, function (start, end) {
+        if (entityFound) {
+          return;
+        }
+
+        var blockKey = block.getKey();
+
+        if (isSameBlock && (end < finalStartOffset || start > finalEndOffset)) {
+          return;
+        } else if (blockKey === startKey && end < finalStartOffset) {
+          return;
+        } else if (blockKey === endKey && start > finalEndOffset) {
+          return;
+        }
+
+        entityFound = true;
+      });
+    });
+
+    return entityFound;
+  };
+};
+},{"./getSelectedBlocks":9}],12:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -68,7 +1124,7 @@ var AtomicBlockUtils = {
 };
 
 module.exports = AtomicBlockUtils;
-},{"./BlockMapBuilder":2,"./CharacterMetadata":4,"./ContentBlock":6,"./DraftModifier":24,"./EditorState":30,"./generateRandomKey":61,"immutable":138}],2:[function(require,module,exports){
+},{"./BlockMapBuilder":13,"./CharacterMetadata":15,"./ContentBlock":17,"./DraftModifier":35,"./EditorState":41,"./generateRandomKey":72,"immutable":156}],13:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -97,7 +1153,7 @@ var BlockMapBuilder = {
 };
 
 module.exports = BlockMapBuilder;
-},{"immutable":138}],3:[function(require,module,exports){
+},{"immutable":156}],14:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -210,7 +1266,7 @@ function areEqual(a, b) {
 }
 
 module.exports = BlockTree;
-},{"./findRangesImmutable":60,"fbjs/lib/emptyFunction":120,"immutable":138}],4:[function(require,module,exports){
+},{"./findRangesImmutable":71,"fbjs/lib/emptyFunction":131,"immutable":156}],15:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -323,7 +1379,7 @@ var pool = Map([[Map(defaultRecord), EMPTY]]);
 CharacterMetadata.EMPTY = EMPTY;
 
 module.exports = CharacterMetadata;
-},{"immutable":138}],5:[function(require,module,exports){
+},{"immutable":156}],16:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -438,7 +1494,7 @@ function occupySlice(targetArr, start, end, componentKey) {
 }
 
 module.exports = CompositeDraftDecorator;
-},{"immutable":138}],6:[function(require,module,exports){
+},{"immutable":156}],17:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -559,7 +1615,7 @@ function haveEqualEntity(charA, charB) {
 }
 
 module.exports = ContentBlock;
-},{"./findRangesImmutable":60,"immutable":138}],7:[function(require,module,exports){
+},{"./findRangesImmutable":71,"immutable":156}],18:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -752,7 +1808,7 @@ var ContentState = function (_ContentStateRecord) {
 }(ContentStateRecord);
 
 module.exports = ContentState;
-},{"./BlockMapBuilder":2,"./CharacterMetadata":4,"./ContentBlock":6,"./DraftEntity":21,"./SelectionState":34,"./generateRandomKey":61,"./sanitizeDraftText":98,"immutable":138}],8:[function(require,module,exports){
+},{"./BlockMapBuilder":13,"./CharacterMetadata":15,"./ContentBlock":17,"./DraftEntity":32,"./SelectionState":45,"./generateRandomKey":72,"./sanitizeDraftText":109,"immutable":156}],19:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -827,7 +1883,7 @@ function modifyInlineStyle(contentState, selectionState, inlineStyle, addOrRemov
 }
 
 module.exports = ContentStateInlineStyle;
-},{"./CharacterMetadata":4,"immutable":138}],9:[function(require,module,exports){
+},{"./CharacterMetadata":15,"immutable":156}],20:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -898,7 +1954,7 @@ var DefaultDraftBlockRenderMap = Map({
 });
 
 module.exports = DefaultDraftBlockRenderMap;
-},{"fbjs/lib/cx":119,"immutable":138,"react":undefined}],10:[function(require,module,exports){
+},{"fbjs/lib/cx":130,"immutable":156,"react":undefined}],21:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -935,7 +1991,7 @@ module.exports = {
     textDecoration: 'underline'
   }
 };
-},{}],11:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -1006,7 +2062,7 @@ var DraftPublic = {
 };
 
 module.exports = DraftPublic;
-},{"./AtomicBlockUtils":1,"./BlockMapBuilder":2,"./CharacterMetadata":4,"./CompositeDraftDecorator":5,"./ContentBlock":6,"./ContentState":7,"./DefaultDraftBlockRenderMap":9,"./DefaultDraftInlineStyle":10,"./DraftEditor.react":12,"./DraftEditorBlock.react":13,"./DraftEntity":21,"./DraftEntityInstance":22,"./DraftModifier":24,"./EditorState":30,"./KeyBindingUtil":31,"./RichTextEditorUtil":32,"./SelectionState":34,"./convertFromDraftStateToRaw":38,"./convertFromHTMLToContentBlocks":39,"./convertFromRawToDraftState":40,"./generateRandomKey":61,"./getDefaultKeyBinding":64,"./getVisibleSelectionRect":76}],12:[function(require,module,exports){
+},{"./AtomicBlockUtils":12,"./BlockMapBuilder":13,"./CharacterMetadata":15,"./CompositeDraftDecorator":16,"./ContentBlock":17,"./ContentState":18,"./DefaultDraftBlockRenderMap":20,"./DefaultDraftInlineStyle":21,"./DraftEditor.react":23,"./DraftEditorBlock.react":24,"./DraftEntity":32,"./DraftEntityInstance":33,"./DraftModifier":35,"./EditorState":41,"./KeyBindingUtil":42,"./RichTextEditorUtil":43,"./SelectionState":45,"./convertFromDraftStateToRaw":49,"./convertFromHTMLToContentBlocks":50,"./convertFromRawToDraftState":51,"./generateRandomKey":72,"./getDefaultKeyBinding":75,"./getVisibleSelectionRect":87}],23:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -1443,7 +2499,7 @@ DraftEditor.defaultProps = {
 
 
 module.exports = DraftEditor;
-},{"./DefaultDraftBlockRenderMap":9,"./DefaultDraftInlineStyle":10,"./DraftEditorCompositionHandler":14,"./DraftEditorContents.react":15,"./DraftEditorDragHandler":16,"./DraftEditorEditHandler":17,"./DraftEditorPlaceholder.react":19,"./EditorState":30,"./generateRandomKey":61,"./getDefaultKeyBinding":64,"fbjs/lib/Scroll":105,"fbjs/lib/Style":106,"fbjs/lib/UserAgent":113,"fbjs/lib/cx":119,"fbjs/lib/emptyFunction":120,"fbjs/lib/getScrollPosition":125,"fbjs/lib/nullthrows":136,"object-assign":139,"react":undefined,"react-dom":undefined}],13:[function(require,module,exports){
+},{"./DefaultDraftBlockRenderMap":20,"./DefaultDraftInlineStyle":21,"./DraftEditorCompositionHandler":25,"./DraftEditorContents.react":26,"./DraftEditorDragHandler":27,"./DraftEditorEditHandler":28,"./DraftEditorPlaceholder.react":30,"./EditorState":41,"./generateRandomKey":72,"./getDefaultKeyBinding":75,"fbjs/lib/Scroll":116,"fbjs/lib/Style":117,"fbjs/lib/UserAgent":124,"fbjs/lib/cx":130,"fbjs/lib/emptyFunction":131,"fbjs/lib/getScrollPosition":136,"fbjs/lib/nullthrows":147,"object-assign":157,"react":undefined,"react-dom":undefined}],24:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -1652,7 +2708,7 @@ function isBlockOnSelectionEdge(selection, key) {
 }
 
 module.exports = DraftEditorBlock;
-},{"./ContentBlock":6,"./ContentState":7,"./DraftEditorLeaf.react":18,"./DraftOffsetKey":25,"./SelectionState":34,"fbjs/lib/Scroll":105,"fbjs/lib/Style":106,"fbjs/lib/UnicodeBidi":109,"fbjs/lib/UnicodeBidiDirection":110,"fbjs/lib/cx":119,"fbjs/lib/getElementPosition":123,"fbjs/lib/getScrollPosition":125,"fbjs/lib/getViewportDimensions":128,"fbjs/lib/nullthrows":136,"object-assign":139,"react":undefined,"react-dom":undefined}],14:[function(require,module,exports){
+},{"./ContentBlock":17,"./ContentState":18,"./DraftEditorLeaf.react":29,"./DraftOffsetKey":36,"./SelectionState":45,"fbjs/lib/Scroll":116,"fbjs/lib/Style":117,"fbjs/lib/UnicodeBidi":120,"fbjs/lib/UnicodeBidiDirection":121,"fbjs/lib/cx":130,"fbjs/lib/getElementPosition":134,"fbjs/lib/getScrollPosition":136,"fbjs/lib/getViewportDimensions":139,"fbjs/lib/nullthrows":147,"object-assign":157,"react":undefined,"react-dom":undefined}],25:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -1822,7 +2878,7 @@ var DraftEditorCompositionHandler = {
 };
 
 module.exports = DraftEditorCompositionHandler;
-},{"./DraftModifier":24,"./EditorState":30,"./getEntityKeyForSelection":67,"./isSelectionAtLeafStart":81,"fbjs/lib/Keys":103}],15:[function(require,module,exports){
+},{"./DraftModifier":35,"./EditorState":41,"./getEntityKeyForSelection":78,"./isSelectionAtLeafStart":92,"fbjs/lib/Keys":114}],26:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -2066,7 +3122,7 @@ function getListItemClasses(type, depth, shouldResetCount, direction) {
 }
 
 module.exports = DraftEditorContents;
-},{"./DraftEditorBlock.react":13,"./DraftOffsetKey":25,"./EditorState":30,"fbjs/lib/cx":119,"fbjs/lib/joinClasses":133,"fbjs/lib/nullthrows":136,"object-assign":139,"react":undefined}],16:[function(require,module,exports){
+},{"./DraftEditorBlock.react":24,"./DraftOffsetKey":36,"./EditorState":41,"fbjs/lib/cx":130,"fbjs/lib/joinClasses":144,"fbjs/lib/nullthrows":147,"object-assign":157,"react":undefined}],27:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -2184,7 +3240,7 @@ function insertTextAtSelection(editorState, selection, text) {
 }
 
 module.exports = DraftEditorDragHandler;
-},{"./DraftModifier":24,"./EditorState":30,"./findAncestorOffsetKey":59,"./getTextContentFromFiles":74,"./getUpdatedSelectionState":75,"./isEventHandled":80,"fbjs/lib/DataTransfer":102,"fbjs/lib/nullthrows":136}],17:[function(require,module,exports){
+},{"./DraftModifier":35,"./EditorState":41,"./findAncestorOffsetKey":70,"./getTextContentFromFiles":85,"./getUpdatedSelectionState":86,"./isEventHandled":91,"fbjs/lib/DataTransfer":113,"fbjs/lib/nullthrows":147}],28:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -2228,7 +3284,7 @@ var DraftEditorEditHandler = {
 };
 
 module.exports = DraftEditorEditHandler;
-},{"./editOnBeforeInput":44,"./editOnBlur":45,"./editOnCompositionStart":46,"./editOnCopy":47,"./editOnCut":48,"./editOnDragOver":49,"./editOnDragStart":50,"./editOnFocus":51,"./editOnInput":52,"./editOnKeyDown":53,"./editOnPaste":54,"./editOnSelect":55}],18:[function(require,module,exports){
+},{"./editOnBeforeInput":55,"./editOnBlur":56,"./editOnCompositionStart":57,"./editOnCopy":58,"./editOnCut":59,"./editOnDragOver":60,"./editOnDragStart":61,"./editOnFocus":62,"./editOnInput":63,"./editOnKeyDown":64,"./editOnPaste":65,"./editOnSelect":66}],29:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -2388,7 +3444,7 @@ var DraftEditorLeaf = function (_React$Component) {
 }(React.Component);
 
 module.exports = DraftEditorLeaf;
-},{"./DraftEditorTextNode.react":20,"./SelectionState":34,"./setDraftEditorSelection":99,"object-assign":139,"react":undefined,"react-dom":undefined}],19:[function(require,module,exports){
+},{"./DraftEditorTextNode.react":31,"./SelectionState":45,"./setDraftEditorSelection":110,"object-assign":157,"react":undefined,"react-dom":undefined}],30:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -2458,7 +3514,7 @@ var DraftEditorPlaceholder = function (_React$Component) {
 }(React.Component);
 
 module.exports = DraftEditorPlaceholder;
-},{"fbjs/lib/cx":119,"react":undefined}],20:[function(require,module,exports){
+},{"fbjs/lib/cx":130,"react":undefined}],31:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -2567,7 +3623,7 @@ var DraftEditorTextNode = function (_React$Component) {
 }(React.Component);
 
 module.exports = DraftEditorTextNode;
-},{"fbjs/lib/UserAgent":113,"react":undefined,"react-dom":undefined}],21:[function(require,module,exports){
+},{"fbjs/lib/UserAgent":124,"react":undefined,"react-dom":undefined}],32:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -2764,7 +3820,7 @@ var DraftEntity = {
 
 module.exports = DraftEntity;
 }).call(this,require('_process'))
-},{"./DraftEntityInstance":22,"_process":140,"fbjs/lib/invariant":130,"immutable":138,"object-assign":139}],22:[function(require,module,exports){
+},{"./DraftEntityInstance":33,"_process":158,"fbjs/lib/invariant":141,"immutable":156,"object-assign":157}],33:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -2833,7 +3889,7 @@ var DraftEntityInstance = function (_DraftEntityInstanceR) {
 }(DraftEntityInstanceRecord);
 
 module.exports = DraftEntityInstance;
-},{"immutable":138}],23:[function(require,module,exports){
+},{"immutable":156}],34:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -2933,7 +3989,7 @@ var DraftEntitySegments = {
 };
 
 module.exports = DraftEntitySegments;
-},{}],24:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -3073,7 +4129,7 @@ var DraftModifier = {
 
 module.exports = DraftModifier;
 }).call(this,require('_process'))
-},{"./CharacterMetadata":4,"./ContentStateInlineStyle":8,"./applyEntityToContentState":37,"./getCharacterRemovalRange":62,"./getContentStateFragment":63,"./insertFragmentIntoContentState":77,"./insertTextIntoContentState":79,"./modifyBlockForContentState":92,"./removeEntitiesAtEdges":95,"./removeRangeFromContentState":96,"./splitBlockInContentState":100,"_process":140,"fbjs/lib/invariant":130,"immutable":138}],25:[function(require,module,exports){
+},{"./CharacterMetadata":15,"./ContentStateInlineStyle":19,"./applyEntityToContentState":48,"./getCharacterRemovalRange":73,"./getContentStateFragment":74,"./insertFragmentIntoContentState":88,"./insertTextIntoContentState":90,"./modifyBlockForContentState":103,"./removeEntitiesAtEdges":106,"./removeRangeFromContentState":107,"./splitBlockInContentState":111,"_process":158,"fbjs/lib/invariant":141,"immutable":156}],36:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -3111,7 +4167,7 @@ var DraftOffsetKey = {
 };
 
 module.exports = DraftOffsetKey;
-},{}],26:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -3158,7 +4214,7 @@ var DraftPasteProcessor = {
 };
 
 module.exports = DraftPasteProcessor;
-},{"./CharacterMetadata":4,"./ContentBlock":6,"./convertFromHTMLToContentBlocks":39,"./generateRandomKey":61,"./getSafeBodyFromHTML":72,"./sanitizeDraftText":98,"immutable":138}],27:[function(require,module,exports){
+},{"./CharacterMetadata":15,"./ContentBlock":17,"./convertFromHTMLToContentBlocks":50,"./generateRandomKey":72,"./getSafeBodyFromHTML":83,"./sanitizeDraftText":109,"immutable":156}],38:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -3210,7 +4266,7 @@ var DraftRemovableWord = {
 };
 
 module.exports = DraftRemovableWord;
-},{"fbjs/lib/TokenizeUtil":107}],28:[function(require,module,exports){
+},{"fbjs/lib/TokenizeUtil":118}],39:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -3237,7 +4293,7 @@ var DraftStringKey = {
 };
 
 module.exports = DraftStringKey;
-},{}],29:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -3286,7 +4342,7 @@ var EditorBidiService = {
 };
 
 module.exports = EditorBidiService;
-},{"fbjs/lib/UnicodeBidiService":111,"fbjs/lib/nullthrows":136,"immutable":138}],30:[function(require,module,exports){
+},{"fbjs/lib/UnicodeBidiService":122,"fbjs/lib/nullthrows":147,"immutable":156}],41:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -3849,7 +4905,7 @@ function lookUpwardForInlineStyle(content, fromKey) {
 }
 
 module.exports = EditorState;
-},{"./BlockTree":3,"./ContentState":7,"./EditorBidiService":29,"./SelectionState":34,"immutable":138,"object-assign":139}],31:[function(require,module,exports){
+},{"./BlockTree":14,"./ContentState":18,"./EditorBidiService":40,"./SelectionState":45,"immutable":156,"object-assign":157}],42:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -3889,7 +4945,7 @@ var KeyBindingUtil = {
 };
 
 module.exports = KeyBindingUtil;
-},{"fbjs/lib/UserAgent":113}],32:[function(require,module,exports){
+},{"fbjs/lib/UserAgent":124}],43:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -4195,7 +5251,7 @@ var RichTextEditorUtil = {
 };
 
 module.exports = RichTextEditorUtil;
-},{"./DraftModifier":24,"./EditorState":30,"./SelectionState":34,"./adjustBlockDepthForContentState":35,"fbjs/lib/nullthrows":136}],33:[function(require,module,exports){
+},{"./DraftModifier":35,"./EditorState":41,"./SelectionState":45,"./adjustBlockDepthForContentState":46,"fbjs/lib/nullthrows":147}],44:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -4265,7 +5321,7 @@ var SecondaryClipboard = {
 };
 
 module.exports = SecondaryClipboard;
-},{"./DraftModifier":24,"./EditorState":30,"./getContentStateFragment":63,"fbjs/lib/nullthrows":136}],34:[function(require,module,exports){
+},{"./DraftModifier":35,"./EditorState":41,"./getContentStateFragment":74,"fbjs/lib/nullthrows":147}],45:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -4400,7 +5456,7 @@ var SelectionState = function (_SelectionStateRecord) {
 }(SelectionStateRecord);
 
 module.exports = SelectionState;
-},{"immutable":138}],35:[function(require,module,exports){
+},{"immutable":156}],46:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -4440,7 +5496,7 @@ function adjustBlockDepthForContentState(contentState, selectionState, adjustmen
 }
 
 module.exports = adjustBlockDepthForContentState;
-},{}],36:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -4468,7 +5524,7 @@ function applyEntityToContentBlock(contentBlock, start, end, entityKey) {
 }
 
 module.exports = applyEntityToContentBlock;
-},{"./CharacterMetadata":4}],37:[function(require,module,exports){
+},{"./CharacterMetadata":15}],48:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -4513,7 +5569,7 @@ function applyEntityToContentState(contentState, selectionState, entityKey) {
 }
 
 module.exports = applyEntityToContentState;
-},{"./applyEntityToContentBlock":36,"immutable":138}],38:[function(require,module,exports){
+},{"./applyEntityToContentBlock":47,"immutable":156}],49:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -4580,7 +5636,7 @@ function convertFromDraftStateToRaw(contentState) {
 }
 
 module.exports = convertFromDraftStateToRaw;
-},{"./DraftStringKey":28,"./encodeEntityRanges":56,"./encodeInlineStyleRanges":57}],39:[function(require,module,exports){
+},{"./DraftStringKey":39,"./encodeEntityRanges":67,"./encodeInlineStyleRanges":68}],50:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -5098,7 +6154,7 @@ function convertFromHTMLtoContentBlocks(html) {
 
 module.exports = convertFromHTMLtoContentBlocks;
 }).call(this,require('_process'))
-},{"./CharacterMetadata":4,"./ContentBlock":6,"./DefaultDraftBlockRenderMap":9,"./DraftEntity":21,"./generateRandomKey":61,"./getSafeBodyFromHTML":72,"./sanitizeDraftText":98,"_process":140,"fbjs/lib/URI":108,"fbjs/lib/invariant":130,"fbjs/lib/nullthrows":136,"immutable":138}],40:[function(require,module,exports){
+},{"./CharacterMetadata":15,"./ContentBlock":17,"./DefaultDraftBlockRenderMap":20,"./DraftEntity":32,"./generateRandomKey":72,"./getSafeBodyFromHTML":83,"./sanitizeDraftText":109,"_process":158,"fbjs/lib/URI":119,"fbjs/lib/invariant":141,"fbjs/lib/nullthrows":147,"immutable":156}],51:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -5182,7 +6238,7 @@ function convertFromRawToDraftState(rawState) {
 }
 
 module.exports = convertFromRawToDraftState;
-},{"./ContentBlock":6,"./ContentState":7,"./DraftEntity":21,"./createCharacterList":41,"./decodeEntityRanges":42,"./decodeInlineStyleRanges":43,"./generateRandomKey":61,"immutable":138,"object-assign":139}],41:[function(require,module,exports){
+},{"./ContentBlock":17,"./ContentState":18,"./DraftEntity":32,"./createCharacterList":52,"./decodeEntityRanges":53,"./decodeInlineStyleRanges":54,"./generateRandomKey":72,"immutable":156,"object-assign":157}],52:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -5213,7 +6269,7 @@ function createCharacterList(inlineStyles, entities) {
 }
 
 module.exports = createCharacterList;
-},{"./CharacterMetadata":4,"immutable":138}],42:[function(require,module,exports){
+},{"./CharacterMetadata":15,"immutable":156}],53:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -5254,7 +6310,7 @@ function decodeEntityRanges(text, ranges) {
 }
 
 module.exports = decodeEntityRanges;
-},{"fbjs/lib/UnicodeUtils":112}],43:[function(require,module,exports){
+},{"fbjs/lib/UnicodeUtils":123}],54:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -5299,7 +6355,7 @@ function decodeInlineStyleRanges(text, ranges) {
 }
 
 module.exports = decodeInlineStyleRanges;
-},{"fbjs/lib/UnicodeUtils":112,"immutable":138}],44:[function(require,module,exports){
+},{"fbjs/lib/UnicodeUtils":123,"immutable":156}],55:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -5435,7 +6491,7 @@ function editOnBeforeInput(editor, e) {
 }
 
 module.exports = editOnBeforeInput;
-},{"./BlockTree":3,"./DraftModifier":24,"./EditorState":30,"./getEntityKeyForSelection":67,"./isEventHandled":80,"./isSelectionAtLeafStart":81,"fbjs/lib/UserAgent":113,"fbjs/lib/nullthrows":136,"fbjs/lib/setImmediate":137}],45:[function(require,module,exports){
+},{"./BlockTree":14,"./DraftModifier":35,"./EditorState":41,"./getEntityKeyForSelection":78,"./isEventHandled":91,"./isSelectionAtLeafStart":92,"fbjs/lib/UserAgent":124,"fbjs/lib/nullthrows":147,"fbjs/lib/setImmediate":148}],56:[function(require,module,exports){
 (function (global){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -5482,7 +6538,7 @@ function editOnBlur(editor, e) {
 
 module.exports = editOnBlur;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./EditorState":30,"fbjs/lib/UserAgent":113,"fbjs/lib/getActiveElement":121}],46:[function(require,module,exports){
+},{"./EditorState":41,"fbjs/lib/UserAgent":124,"fbjs/lib/getActiveElement":132}],57:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -5511,7 +6567,7 @@ function editOnCompositionStart(editor, e) {
 }
 
 module.exports = editOnCompositionStart;
-},{"./EditorState":30}],47:[function(require,module,exports){
+},{"./EditorState":41}],58:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -5547,7 +6603,7 @@ function editOnCopy(editor, e) {
 }
 
 module.exports = editOnCopy;
-},{"./getFragmentFromSelection":68}],48:[function(require,module,exports){
+},{"./getFragmentFromSelection":79}],59:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -5618,7 +6674,7 @@ function removeFragment(editorState) {
 }
 
 module.exports = editOnCut;
-},{"./DraftModifier":24,"./EditorState":30,"./getFragmentFromSelection":68,"fbjs/lib/Style":106,"fbjs/lib/getScrollPosition":125}],49:[function(require,module,exports){
+},{"./DraftModifier":35,"./EditorState":41,"./getFragmentFromSelection":79,"fbjs/lib/Style":117,"fbjs/lib/getScrollPosition":136}],60:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -5643,7 +6699,7 @@ function editOnDragOver(editor, e) {
 }
 
 module.exports = editOnDragOver;
-},{}],50:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -5667,7 +6723,7 @@ function editOnDragStart(editor) {
 }
 
 module.exports = editOnDragStart;
-},{}],51:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -5704,7 +6760,7 @@ function editOnFocus(editor, e) {
 }
 
 module.exports = editOnFocus;
-},{"./EditorState":30}],52:[function(require,module,exports){
+},{"./EditorState":41}],63:[function(require,module,exports){
 (function (global){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -5852,7 +6908,7 @@ function editOnInput(editor) {
 
 module.exports = editOnInput;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./DraftModifier":24,"./DraftOffsetKey":25,"./EditorState":30,"./findAncestorOffsetKey":59,"fbjs/lib/UserAgent":113,"fbjs/lib/nullthrows":136}],53:[function(require,module,exports){
+},{"./DraftModifier":35,"./DraftOffsetKey":36,"./EditorState":41,"./findAncestorOffsetKey":70,"fbjs/lib/UserAgent":124,"fbjs/lib/nullthrows":147}],64:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -6001,7 +7057,7 @@ function editOnKeyDown(editor, e) {
 }
 
 module.exports = editOnKeyDown;
-},{"./DraftModifier":24,"./EditorState":30,"./KeyBindingUtil":31,"./SecondaryClipboard":33,"./isEventHandled":80,"./keyCommandBackspaceToStartOfLine":82,"./keyCommandBackspaceWord":83,"./keyCommandDeleteWord":84,"./keyCommandInsertNewline":85,"./keyCommandMoveSelectionToEndOfBlock":86,"./keyCommandMoveSelectionToStartOfBlock":87,"./keyCommandPlainBackspace":88,"./keyCommandPlainDelete":89,"./keyCommandTransposeCharacters":90,"./keyCommandUndo":91,"fbjs/lib/Keys":103,"fbjs/lib/UserAgent":113}],54:[function(require,module,exports){
+},{"./DraftModifier":35,"./EditorState":41,"./KeyBindingUtil":42,"./SecondaryClipboard":44,"./isEventHandled":91,"./keyCommandBackspaceToStartOfLine":93,"./keyCommandBackspaceWord":94,"./keyCommandDeleteWord":95,"./keyCommandInsertNewline":96,"./keyCommandMoveSelectionToEndOfBlock":97,"./keyCommandMoveSelectionToStartOfBlock":98,"./keyCommandPlainBackspace":99,"./keyCommandPlainDelete":100,"./keyCommandTransposeCharacters":101,"./keyCommandUndo":102,"fbjs/lib/Keys":114,"fbjs/lib/UserAgent":124}],65:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -6162,7 +7218,7 @@ function areTextBlocksAndClipboardEqual(textBlocks, blockMap) {
 }
 
 module.exports = editOnPaste;
-},{"./BlockMapBuilder":2,"./CharacterMetadata":4,"./DraftModifier":24,"./DraftPasteProcessor":26,"./EditorState":30,"./getEntityKeyForSelection":67,"./getTextContentFromFiles":74,"./isEventHandled":80,"./splitTextIntoTextBlocks":101,"fbjs/lib/DataTransfer":102}],55:[function(require,module,exports){
+},{"./BlockMapBuilder":13,"./CharacterMetadata":15,"./DraftModifier":35,"./DraftPasteProcessor":37,"./EditorState":41,"./getEntityKeyForSelection":78,"./getTextContentFromFiles":85,"./isEventHandled":91,"./splitTextIntoTextBlocks":112,"fbjs/lib/DataTransfer":113}],66:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -6202,7 +7258,7 @@ function editOnSelect(editor) {
 }
 
 module.exports = editOnSelect;
-},{"./EditorState":30,"./getDraftEditorSelection":65,"react-dom":undefined}],56:[function(require,module,exports){
+},{"./EditorState":41,"./getDraftEditorSelection":76,"react-dom":undefined}],67:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -6245,7 +7301,7 @@ function encodeEntityRanges(block, storageMap) {
 }
 
 module.exports = encodeEntityRanges;
-},{"./DraftStringKey":28,"fbjs/lib/UnicodeUtils":112}],57:[function(require,module,exports){
+},{"./DraftStringKey":39,"fbjs/lib/UnicodeUtils":123}],68:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -6314,7 +7370,7 @@ function encodeInlineStyleRanges(block) {
 }
 
 module.exports = encodeInlineStyleRanges;
-},{"./findRangesImmutable":60,"fbjs/lib/UnicodeUtils":112}],58:[function(require,module,exports){
+},{"./findRangesImmutable":71,"fbjs/lib/UnicodeUtils":123}],69:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -6506,7 +7562,7 @@ function expandRangeToStartOfLine(range) {
 
 module.exports = expandRangeToStartOfLine;
 }).call(this,require('_process'))
-},{"./getRangeClientRects":70,"_process":140,"fbjs/lib/UnicodeUtils":112,"fbjs/lib/invariant":130}],59:[function(require,module,exports){
+},{"./getRangeClientRects":81,"_process":158,"fbjs/lib/UnicodeUtils":123,"fbjs/lib/invariant":141}],70:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -6540,7 +7596,7 @@ function findAncestorOffsetKey(node) {
 }
 
 module.exports = findAncestorOffsetKey;
-},{"./getSelectionOffsetKeyForNode":73}],60:[function(require,module,exports){
+},{"./getSelectionOffsetKeyForNode":84}],71:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -6585,7 +7641,7 @@ function findRangesImmutable(haystack, areEqualFn, filterFn, foundFn) {
 }
 
 module.exports = findRangesImmutable;
-},{}],61:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -6614,7 +7670,7 @@ function generateRandomKey() {
 }
 
 module.exports = generateRandomKey;
-},{}],62:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -6693,7 +7749,7 @@ function getCharacterRemovalRange(entityMap, block, selectionState, direction) {
 
 module.exports = getCharacterRemovalRange;
 }).call(this,require('_process'))
-},{"./DraftEntitySegments":23,"./getRangesForDraftEntity":71,"_process":140,"fbjs/lib/invariant":130}],63:[function(require,module,exports){
+},{"./DraftEntitySegments":34,"./getRangesForDraftEntity":82,"_process":158,"fbjs/lib/invariant":141}],74:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -6765,7 +7821,7 @@ function getContentStateFragment(contentState, selectionState) {
 }
 
 module.exports = getContentStateFragment;
-},{"./generateRandomKey":61,"./removeEntitiesAtEdges":95}],64:[function(require,module,exports){
+},{"./generateRandomKey":72,"./removeEntitiesAtEdges":106}],75:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -6890,7 +7946,7 @@ function getDefaultKeyBinding(e) {
 }
 
 module.exports = getDefaultKeyBinding;
-},{"./KeyBindingUtil":31,"fbjs/lib/Keys":103,"fbjs/lib/UserAgent":113}],65:[function(require,module,exports){
+},{"./KeyBindingUtil":42,"fbjs/lib/Keys":114,"fbjs/lib/UserAgent":124}],76:[function(require,module,exports){
 (function (global){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -6929,7 +7985,7 @@ function getDraftEditorSelection(editorState, root) {
 
 module.exports = getDraftEditorSelection;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./getDraftEditorSelectionWithNodes":66}],66:[function(require,module,exports){
+},{"./getDraftEditorSelectionWithNodes":77}],77:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -7111,7 +8167,7 @@ function getTextContentLength(node) {
 
 module.exports = getDraftEditorSelectionWithNodes;
 }).call(this,require('_process'))
-},{"./findAncestorOffsetKey":59,"./getSelectionOffsetKeyForNode":73,"./getUpdatedSelectionState":75,"_process":140,"fbjs/lib/invariant":130,"fbjs/lib/nullthrows":136}],67:[function(require,module,exports){
+},{"./findAncestorOffsetKey":70,"./getSelectionOffsetKeyForNode":84,"./getUpdatedSelectionState":86,"_process":158,"fbjs/lib/invariant":141,"fbjs/lib/nullthrows":147}],78:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -7167,7 +8223,7 @@ function filterKey(entityMap, entityKey) {
 }
 
 module.exports = getEntityKeyForSelection;
-},{}],68:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -7195,7 +8251,7 @@ function getFragmentFromSelection(editorState) {
 }
 
 module.exports = getFragmentFromSelection;
-},{"./getContentStateFragment":63}],69:[function(require,module,exports){
+},{"./getContentStateFragment":74}],80:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -7256,7 +8312,7 @@ function getRangeBoundingClientRect(range) {
 }
 
 module.exports = getRangeBoundingClientRect;
-},{"./getRangeClientRects":70}],70:[function(require,module,exports){
+},{"./getRangeClientRects":81}],81:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -7322,7 +8378,7 @@ var getRangeClientRects = isChrome ? getRangeClientRectsChrome : function (range
 
 module.exports = getRangeClientRects;
 }).call(this,require('_process'))
-},{"_process":140,"fbjs/lib/UserAgent":113,"fbjs/lib/invariant":130}],71:[function(require,module,exports){
+},{"_process":158,"fbjs/lib/UserAgent":124,"fbjs/lib/invariant":141}],82:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -7364,7 +8420,7 @@ function getRangesForDraftEntity(block, key) {
 
 module.exports = getRangesForDraftEntity;
 }).call(this,require('_process'))
-},{"_process":140,"fbjs/lib/invariant":130}],72:[function(require,module,exports){
+},{"_process":158,"fbjs/lib/invariant":141}],83:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -7400,7 +8456,7 @@ function getSafeBodyFromHTML(html) {
 }
 
 module.exports = getSafeBodyFromHTML;
-},{"fbjs/lib/UserAgent":113}],73:[function(require,module,exports){
+},{"fbjs/lib/UserAgent":124}],84:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -7438,7 +8494,7 @@ function getSelectionOffsetKeyForNode(node) {
 }
 
 module.exports = getSelectionOffsetKeyForNode;
-},{}],74:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 (function (global){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -7516,7 +8572,7 @@ function readFile(file, callback) {
 
 module.exports = getTextContentFromFiles;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],75:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -7594,7 +8650,7 @@ function getUpdatedSelectionState(editorState, anchorKey, anchorOffset, focusKey
 
 module.exports = getUpdatedSelectionState;
 }).call(this,require('_process'))
-},{"./DraftOffsetKey":25,"_process":140,"fbjs/lib/nullthrows":136}],76:[function(require,module,exports){
+},{"./DraftOffsetKey":36,"_process":158,"fbjs/lib/nullthrows":147}],87:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -7642,7 +8698,7 @@ function getVisibleSelectionRect(global) {
 }
 
 module.exports = getVisibleSelectionRect;
-},{"./getRangeBoundingClientRect":69}],77:[function(require,module,exports){
+},{"./getRangeBoundingClientRect":80}],88:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -7771,7 +8827,7 @@ function insertFragmentIntoContentState(contentState, selectionState, fragment) 
 
 module.exports = insertFragmentIntoContentState;
 }).call(this,require('_process'))
-},{"./BlockMapBuilder":2,"./generateRandomKey":61,"./insertIntoList":78,"_process":140,"fbjs/lib/invariant":130}],78:[function(require,module,exports){
+},{"./BlockMapBuilder":13,"./generateRandomKey":72,"./insertIntoList":89,"_process":158,"fbjs/lib/invariant":141}],89:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -7807,7 +8863,7 @@ function insertIntoList(targetList, toInsert, offset) {
 }
 
 module.exports = insertIntoList;
-},{}],79:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -7864,7 +8920,7 @@ function insertTextIntoContentState(contentState, selectionState, text, characte
 
 module.exports = insertTextIntoContentState;
 }).call(this,require('_process'))
-},{"./insertIntoList":78,"_process":140,"fbjs/lib/invariant":130,"immutable":138}],80:[function(require,module,exports){
+},{"./insertIntoList":89,"_process":158,"fbjs/lib/invariant":141,"immutable":156}],91:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -7889,7 +8945,7 @@ function isEventHandled(value) {
 }
 
 module.exports = isEventHandled;
-},{}],81:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -7938,7 +8994,7 @@ function isSelectionAtLeafStart(editorState) {
 }
 
 module.exports = isSelectionAtLeafStart;
-},{}],82:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 (function (global){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -7984,7 +9040,7 @@ function keyCommandBackspaceToStartOfLine(editorState) {
 
 module.exports = keyCommandBackspaceToStartOfLine;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./EditorState":30,"./expandRangeToStartOfLine":58,"./getDraftEditorSelectionWithNodes":66,"./moveSelectionBackward":93,"./removeTextWithStrategy":97}],83:[function(require,module,exports){
+},{"./EditorState":41,"./expandRangeToStartOfLine":69,"./getDraftEditorSelectionWithNodes":77,"./moveSelectionBackward":104,"./removeTextWithStrategy":108}],94:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8032,7 +9088,7 @@ function keyCommandBackspaceWord(editorState) {
 }
 
 module.exports = keyCommandBackspaceWord;
-},{"./DraftRemovableWord":27,"./EditorState":30,"./moveSelectionBackward":93,"./removeTextWithStrategy":97}],84:[function(require,module,exports){
+},{"./DraftRemovableWord":38,"./EditorState":41,"./moveSelectionBackward":104,"./removeTextWithStrategy":108}],95:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8078,7 +9134,7 @@ function keyCommandDeleteWord(editorState) {
 }
 
 module.exports = keyCommandDeleteWord;
-},{"./DraftRemovableWord":27,"./EditorState":30,"./moveSelectionForward":94,"./removeTextWithStrategy":97}],85:[function(require,module,exports){
+},{"./DraftRemovableWord":38,"./EditorState":41,"./moveSelectionForward":105,"./removeTextWithStrategy":108}],96:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8102,7 +9158,7 @@ function keyCommandInsertNewline(editorState) {
 }
 
 module.exports = keyCommandInsertNewline;
-},{"./DraftModifier":24,"./EditorState":30}],86:[function(require,module,exports){
+},{"./DraftModifier":35,"./EditorState":41}],97:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8140,7 +9196,7 @@ function keyCommandMoveSelectionToEndOfBlock(editorState) {
 }
 
 module.exports = keyCommandMoveSelectionToEndOfBlock;
-},{"./EditorState":30}],87:[function(require,module,exports){
+},{"./EditorState":41}],98:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8178,7 +9234,7 @@ function keyCommandMoveSelectionToStartOfBlock(editorState) {
 }
 
 module.exports = keyCommandMoveSelectionToStartOfBlock;
-},{"./EditorState":30}],88:[function(require,module,exports){
+},{"./EditorState":41}],99:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8223,7 +9279,7 @@ function keyCommandPlainBackspace(editorState) {
 }
 
 module.exports = keyCommandPlainBackspace;
-},{"./EditorState":30,"./moveSelectionBackward":93,"./removeTextWithStrategy":97,"fbjs/lib/UnicodeUtils":112}],89:[function(require,module,exports){
+},{"./EditorState":41,"./moveSelectionBackward":104,"./removeTextWithStrategy":108,"fbjs/lib/UnicodeUtils":123}],100:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8269,7 +9325,7 @@ function keyCommandPlainDelete(editorState) {
 }
 
 module.exports = keyCommandPlainDelete;
-},{"./EditorState":30,"./moveSelectionForward":94,"./removeTextWithStrategy":97,"fbjs/lib/UnicodeUtils":112}],90:[function(require,module,exports){
+},{"./EditorState":41,"./moveSelectionForward":105,"./removeTextWithStrategy":108,"fbjs/lib/UnicodeUtils":123}],101:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8348,7 +9404,7 @@ function keyCommandTransposeCharacters(editorState) {
 }
 
 module.exports = keyCommandTransposeCharacters;
-},{"./DraftModifier":24,"./EditorState":30,"./getContentStateFragment":63}],91:[function(require,module,exports){
+},{"./DraftModifier":35,"./EditorState":41,"./getContentStateFragment":74}],102:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8397,7 +9453,7 @@ function keyCommandUndo(e, editorState, updateFn) {
 }
 
 module.exports = keyCommandUndo;
-},{"./EditorState":30}],92:[function(require,module,exports){
+},{"./EditorState":41}],103:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8436,7 +9492,7 @@ function modifyBlockForContentState(contentState, selectionState, operation) {
 }
 
 module.exports = modifyBlockForContentState;
-},{"immutable":138}],93:[function(require,module,exports){
+},{"immutable":156}],104:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8489,7 +9545,7 @@ function moveSelectionBackward(editorState, maxDistance) {
 }
 
 module.exports = moveSelectionBackward;
-},{}],94:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8534,7 +9590,7 @@ function moveSelectionForward(editorState, maxDistance) {
 }
 
 module.exports = moveSelectionForward;
-},{}],95:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -8638,7 +9694,7 @@ function removeForBlock(entityMap, block, offset) {
 
 module.exports = removeEntitiesAtEdges;
 }).call(this,require('_process'))
-},{"./CharacterMetadata":4,"./findRangesImmutable":60,"_process":140,"fbjs/lib/invariant":130}],96:[function(require,module,exports){
+},{"./CharacterMetadata":15,"./findRangesImmutable":71,"_process":158,"fbjs/lib/invariant":141}],107:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8730,7 +9786,7 @@ function removeFromList(targetList, startOffset, endOffset) {
 }
 
 module.exports = removeRangeFromContentState;
-},{"immutable":138}],97:[function(require,module,exports){
+},{"immutable":156}],108:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8773,7 +9829,7 @@ function removeTextWithStrategy(editorState, strategy, direction) {
 }
 
 module.exports = removeTextWithStrategy;
-},{"./DraftModifier":24}],98:[function(require,module,exports){
+},{"./DraftModifier":35}],109:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -8795,7 +9851,7 @@ function sanitizeDraftText(input) {
 }
 
 module.exports = sanitizeDraftText;
-},{}],99:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 (function (global){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -8931,7 +9987,7 @@ function addPointToSelection(selection, node, offset) {
 
 module.exports = setDraftEditorSelection;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"fbjs/lib/containsNode":117,"fbjs/lib/getActiveElement":121}],100:[function(require,module,exports){
+},{"fbjs/lib/containsNode":128,"fbjs/lib/getActiveElement":132}],111:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -9003,7 +10059,7 @@ function splitBlockInContentState(contentState, selectionState) {
 
 module.exports = splitBlockInContentState;
 }).call(this,require('_process'))
-},{"./generateRandomKey":61,"_process":140,"fbjs/lib/invariant":130,"immutable":138}],101:[function(require,module,exports){
+},{"./generateRandomKey":72,"_process":158,"fbjs/lib/invariant":141,"immutable":156}],112:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -9025,7 +10081,7 @@ function splitTextIntoTextBlocks(text) {
 }
 
 module.exports = splitTextIntoTextBlocks;
-},{}],102:[function(require,module,exports){
+},{}],113:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -9247,7 +10303,7 @@ var DataTransfer = function () {
 }();
 
 module.exports = DataTransfer;
-},{"./PhotosMimeType":104,"./createArrayFromMixed":118,"./emptyFunction":120}],103:[function(require,module,exports){
+},{"./PhotosMimeType":115,"./createArrayFromMixed":129,"./emptyFunction":131}],114:[function(require,module,exports){
 "use strict";
 
 /**
@@ -9284,7 +10340,7 @@ module.exports = {
   NUMPAD_0: 96,
   NUMPAD_9: 105
 };
-},{}],104:[function(require,module,exports){
+},{}],115:[function(require,module,exports){
 'use strict';
 
 /**
@@ -9313,7 +10369,7 @@ function getParts(mimeString) {
 }
 
 module.exports = PhotosMimeType;
-},{}],105:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 "use strict";
 
 /**
@@ -9399,7 +10455,7 @@ var Scroll = {
 };
 
 module.exports = Scroll;
-},{}],106:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 'use strict';
 
 /**
@@ -9464,7 +10520,7 @@ var Style = {
 };
 
 module.exports = Style;
-},{"./getStyleProperty":126}],107:[function(require,module,exports){
+},{"./getStyleProperty":137}],118:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -9502,7 +10558,7 @@ module.exports = {
     return PUNCTUATION;
   }
 };
-},{}],108:[function(require,module,exports){
+},{}],119:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -9533,7 +10589,7 @@ var URI = function () {
 }();
 
 module.exports = URI;
-},{}],109:[function(require,module,exports){
+},{}],120:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -9690,7 +10746,7 @@ var UnicodeBidi = {
 };
 
 module.exports = UnicodeBidi;
-},{"./UnicodeBidiDirection":110,"./invariant":130}],110:[function(require,module,exports){
+},{"./UnicodeBidiDirection":121,"./invariant":141}],121:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -9799,7 +10855,7 @@ var UnicodeBidiDirection = {
 };
 
 module.exports = UnicodeBidiDirection;
-},{"./invariant":130}],111:[function(require,module,exports){
+},{"./invariant":141}],122:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -9900,7 +10956,7 @@ var UnicodeBidiService = function () {
 }();
 
 module.exports = UnicodeBidiService;
-},{"./UnicodeBidi":109,"./UnicodeBidiDirection":110,"./invariant":130}],112:[function(require,module,exports){
+},{"./UnicodeBidi":120,"./UnicodeBidiDirection":121,"./invariant":141}],123:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -10115,7 +11171,7 @@ var UnicodeUtils = {
 };
 
 module.exports = UnicodeUtils;
-},{"./invariant":130}],113:[function(require,module,exports){
+},{"./invariant":141}],124:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -10357,7 +11413,7 @@ var UserAgent = {
 };
 
 module.exports = mapObject(UserAgent, memoizeStringOnly);
-},{"./UserAgentData":114,"./VersionRange":115,"./mapObject":134,"./memoizeStringOnly":135}],114:[function(require,module,exports){
+},{"./UserAgentData":125,"./VersionRange":126,"./mapObject":145,"./memoizeStringOnly":146}],125:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -10440,7 +11496,7 @@ var uaData = {
 };
 
 module.exports = uaData;
-},{"ua-parser-js":142}],115:[function(require,module,exports){
+},{"ua-parser-js":163}],126:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -10823,7 +11879,7 @@ var VersionRange = {
 };
 
 module.exports = VersionRange;
-},{"./invariant":130}],116:[function(require,module,exports){
+},{"./invariant":141}],127:[function(require,module,exports){
 "use strict";
 
 /**
@@ -10855,7 +11911,7 @@ function camelize(string) {
 }
 
 module.exports = camelize;
-},{}],117:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 'use strict';
 
 /**
@@ -10895,7 +11951,7 @@ function containsNode(outerNode, innerNode) {
 }
 
 module.exports = containsNode;
-},{"./isTextNode":132}],118:[function(require,module,exports){
+},{"./isTextNode":143}],129:[function(require,module,exports){
 'use strict';
 
 /**
@@ -11022,7 +12078,7 @@ function createArrayFromMixed(obj) {
 }
 
 module.exports = createArrayFromMixed;
-},{"./invariant":130}],119:[function(require,module,exports){
+},{"./invariant":141}],130:[function(require,module,exports){
 'use strict';
 
 /**
@@ -11064,7 +12120,7 @@ function replace(str) {
 }
 
 module.exports = cx;
-},{}],120:[function(require,module,exports){
+},{}],131:[function(require,module,exports){
 "use strict";
 
 /**
@@ -11103,7 +12159,7 @@ emptyFunction.thatReturnsArgument = function (arg) {
 };
 
 module.exports = emptyFunction;
-},{}],121:[function(require,module,exports){
+},{}],132:[function(require,module,exports){
 'use strict';
 
 /**
@@ -11142,7 +12198,7 @@ function getActiveElement(doc) /*?DOMElement*/{
 }
 
 module.exports = getActiveElement;
-},{}],122:[function(require,module,exports){
+},{}],133:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -11173,7 +12229,7 @@ function getDocumentScrollElement(doc) {
 }
 
 module.exports = getDocumentScrollElement;
-},{}],123:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 'use strict';
 
 /**
@@ -11207,7 +12263,7 @@ function getElementPosition(element) {
 }
 
 module.exports = getElementPosition;
-},{"./getElementRect":124}],124:[function(require,module,exports){
+},{"./getElementRect":135}],135:[function(require,module,exports){
 'use strict';
 
 /**
@@ -11258,7 +12314,7 @@ function getElementRect(elem) {
 }
 
 module.exports = getElementRect;
-},{"./containsNode":117}],125:[function(require,module,exports){
+},{"./containsNode":128}],136:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -11306,7 +12362,7 @@ function getScrollPosition(scrollable) {
 }
 
 module.exports = getScrollPosition;
-},{"./getDocumentScrollElement":122,"./getUnboundedScrollPosition":127}],126:[function(require,module,exports){
+},{"./getDocumentScrollElement":133,"./getUnboundedScrollPosition":138}],137:[function(require,module,exports){
 'use strict';
 
 /**
@@ -11360,7 +12416,7 @@ function getStyleProperty( /*DOMNode*/node, /*string*/name) /*?string*/{
 }
 
 module.exports = getStyleProperty;
-},{"./camelize":116,"./hyphenate":129}],127:[function(require,module,exports){
+},{"./camelize":127,"./hyphenate":140}],138:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -11399,7 +12455,7 @@ function getUnboundedScrollPosition(scrollable) {
 }
 
 module.exports = getUnboundedScrollPosition;
-},{}],128:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 "use strict";
 
 function getViewportWidth() {
@@ -11459,7 +12515,7 @@ getViewportDimensions.withoutScrollbars = function () {
 };
 
 module.exports = getViewportDimensions;
-},{}],129:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 'use strict';
 
 /**
@@ -11492,7 +12548,7 @@ function hyphenate(string) {
 }
 
 module.exports = hyphenate;
-},{}],130:[function(require,module,exports){
+},{}],141:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -11548,7 +12604,7 @@ function invariant(condition, format, a, b, c, d, e, f) {
 }
 
 module.exports = invariant;
-},{}],131:[function(require,module,exports){
+},{}],142:[function(require,module,exports){
 'use strict';
 
 /**
@@ -11573,7 +12629,7 @@ function isNode(object) {
 }
 
 module.exports = isNode;
-},{}],132:[function(require,module,exports){
+},{}],143:[function(require,module,exports){
 'use strict';
 
 /**
@@ -11598,7 +12654,7 @@ function isTextNode(object) {
 }
 
 module.exports = isTextNode;
-},{"./isNode":131}],133:[function(require,module,exports){
+},{"./isNode":142}],144:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -11638,7 +12694,7 @@ function joinClasses(className /*, ... */) {
 }
 
 module.exports = joinClasses;
-},{}],134:[function(require,module,exports){
+},{}],145:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -11689,7 +12745,7 @@ function mapObject(object, callback, context) {
 }
 
 module.exports = mapObject;
-},{}],135:[function(require,module,exports){
+},{}],146:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  * All rights reserved.
@@ -11719,7 +12775,7 @@ function memoizeStringOnly(callback) {
 }
 
 module.exports = memoizeStringOnly;
-},{}],136:[function(require,module,exports){
+},{}],147:[function(require,module,exports){
 "use strict";
 
 /**
@@ -11741,7 +12797,7 @@ var nullthrows = function nullthrows(x) {
 };
 
 module.exports = nullthrows;
-},{}],137:[function(require,module,exports){
+},{}],148:[function(require,module,exports){
 (function (global){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -11761,7 +12817,913 @@ module.exports = nullthrows;
 require('setimmediate');
 module.exports = global.setImmediate;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"setimmediate":141}],138:[function(require,module,exports){
+},{"setimmediate":162}],149:[function(require,module,exports){
+function toObj(source) {
+  return Object.keys(source).reduce(function (output, key) {
+    var parentKey = key.match(/[^\[]*/i);
+    var paths = key.match(/\[.*?\]/g) || [];
+    paths = [parentKey[0]].concat(paths).map(function (key) {
+      return key.replace(/\[|\]/g, '');
+    });
+    var currentPath = output;
+    while (paths.length) {
+      var pathKey = paths.shift();
+
+      if (pathKey in currentPath) {
+        currentPath = currentPath[pathKey];
+      } else {
+        currentPath[pathKey] = paths.length ? isNaN(paths[0]) ? {} : [] : source[key];
+        currentPath = currentPath[pathKey];
+      }
+    }
+
+    return output;
+  }, {});
+}
+
+function fromObj(obj) {
+  function recur(newObj, propName, currVal) {
+    if (Array.isArray(currVal) || Object.prototype.toString.call(currVal) === '[object Object]') {
+      Object.keys(currVal).forEach(function(v) {
+        recur(newObj, propName + "[" + v + "]", currVal[v]);
+      });
+      return newObj;
+    }
+
+    newObj[propName] = currVal;
+    return newObj;
+  }
+
+  var keys = Object.keys(obj);
+  return keys.reduce(function(newObj, propName) {
+    return recur(newObj, propName, obj[propName]);
+  }, {});
+}
+
+module.exports = {
+  fromObj: fromObj,
+  toObj: toObj
+}
+},{}],150:[function(require,module,exports){
+(function (global){
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var React = global.React || require('react');
+var Mixin = require('./Mixin.js');
+module.exports = function () {
+  return function (Component) {
+    return React.createClass({
+      mixins: [Mixin],
+      render: function render() {
+        return React.createElement(Component, _extends({
+          setValidations: this.setValidations,
+          setValue: this.setValue,
+          resetValue: this.resetValue,
+          getValue: this.getValue,
+          hasValue: this.hasValue,
+          getErrorMessage: this.getErrorMessage,
+          getErrorMessages: this.getErrorMessages,
+          isFormDisabled: this.isFormDisabled,
+          isValid: this.isValid,
+          isPristine: this.isPristine,
+          isFormSubmitted: this.isFormSubmitted,
+          isRequired: this.isRequired,
+          showRequired: this.showRequired,
+          showError: this.showError,
+          isValidValue: this.isValidValue
+        }, this.props));
+      }
+    });
+  };
+};
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./Mixin.js":152,"react":undefined}],151:[function(require,module,exports){
+(function (global){
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var React = global.React || require('react');
+var Mixin = require('./Mixin.js');
+module.exports = function (Component) {
+  return React.createClass({
+    displayName: 'Formsy(' + getDisplayName(Component) + ')',
+    mixins: [Mixin],
+
+    render: function render() {
+      var innerRef = this.props.innerRef;
+
+      var propsForElement = _extends({
+        setValidations: this.setValidations,
+        setValue: this.setValue,
+        resetValue: this.resetValue,
+        getValue: this.getValue,
+        hasValue: this.hasValue,
+        getErrorMessage: this.getErrorMessage,
+        getErrorMessages: this.getErrorMessages,
+        isFormDisabled: this.isFormDisabled,
+        isValid: this.isValid,
+        isPristine: this.isPristine,
+        isFormSubmitted: this.isFormSubmitted,
+        isRequired: this.isRequired,
+        showRequired: this.showRequired,
+        showError: this.showError,
+        isValidValue: this.isValidValue
+      }, this.props);
+
+      if (innerRef) {
+        propsForElement.ref = innerRef;
+      }
+      return React.createElement(Component, propsForElement);
+    }
+  });
+};
+
+function getDisplayName(Component) {
+  return Component.displayName || Component.name || (typeof Component === 'string' ? Component : 'Component');
+}
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./Mixin.js":152,"react":undefined}],152:[function(require,module,exports){
+(function (global){
+'use strict';
+
+var utils = require('./utils.js');
+var React = global.React || require('react');
+
+var convertValidationsToObject = function convertValidationsToObject(validations) {
+
+  if (typeof validations === 'string') {
+
+    return validations.split(/\,(?![^{\[]*[}\]])/g).reduce(function (validations, validation) {
+      var args = validation.split(':');
+      var validateMethod = args.shift();
+
+      args = args.map(function (arg) {
+        try {
+          return JSON.parse(arg);
+        } catch (e) {
+          return arg; // It is a string if it can not parse it
+        }
+      });
+
+      if (args.length > 1) {
+        throw new Error('Formsy does not support multiple args on string validations. Use object format of validations instead.');
+      }
+
+      validations[validateMethod] = args.length ? args[0] : true;
+      return validations;
+    }, {});
+  }
+
+  return validations || {};
+};
+
+module.exports = {
+  getInitialState: function getInitialState() {
+    return {
+      _value: this.props.value,
+      _isRequired: false,
+      _isValid: true,
+      _isPristine: true,
+      _pristineValue: this.props.value,
+      _validationError: [],
+      _externalError: null,
+      _formSubmitted: false
+    };
+  },
+  contextTypes: {
+    formsy: React.PropTypes.object // What about required?
+  },
+  getDefaultProps: function getDefaultProps() {
+    return {
+      validationError: '',
+      validationErrors: {}
+    };
+  },
+
+  componentWillMount: function componentWillMount() {
+    var configure = function () {
+      this.setValidations(this.props.validations, this.props.required);
+
+      // Pass a function instead?
+      this.context.formsy.attachToForm(this);
+      //this.props._attachToForm(this);
+    }.bind(this);
+
+    if (!this.props.name) {
+      throw new Error('Form Input requires a name property when used');
+    }
+
+    /*
+    if (!this.props._attachToForm) {
+      return setTimeout(function () {
+        if (!this.isMounted()) return;
+        if (!this.props._attachToForm) {
+          throw new Error('Form Mixin requires component to be nested in a Form');
+        }
+        configure();
+      }.bind(this), 0);
+    }
+    */
+    configure();
+  },
+
+  // We have to make the validate method is kept when new props are added
+  componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+    this.setValidations(nextProps.validations, nextProps.required);
+  },
+
+  componentDidUpdate: function componentDidUpdate(prevProps) {
+
+    // If the value passed has changed, set it. If value is not passed it will
+    // internally update, and this will never run
+    if (!utils.isSame(this.props.value, prevProps.value)) {
+      this.setValue(this.props.value);
+    }
+
+    // If validations or required is changed, run a new validation
+    if (!utils.isSame(this.props.validations, prevProps.validations) || !utils.isSame(this.props.required, prevProps.required)) {
+      this.context.formsy.validate(this);
+    }
+  },
+
+  // Detach it when component unmounts
+  componentWillUnmount: function componentWillUnmount() {
+    this.context.formsy.detachFromForm(this);
+    //this.props._detachFromForm(this);
+  },
+
+  setValidations: function setValidations(validations, required) {
+
+    // Add validations to the store itself as the props object can not be modified
+    this._validations = convertValidationsToObject(validations) || {};
+    this._requiredValidations = required === true ? { isDefaultRequiredValue: true } : convertValidationsToObject(required);
+  },
+
+  // We validate after the value has been set
+  setValue: function setValue(value) {
+    this.setState({
+      _value: value,
+      _isPristine: false
+    }, function () {
+      this.context.formsy.validate(this);
+      //this.props._validate(this);
+    }.bind(this));
+  },
+  resetValue: function resetValue() {
+    this.setState({
+      _value: this.state._pristineValue,
+      _isPristine: true
+    }, function () {
+      this.context.formsy.validate(this);
+      //this.props._validate(this);
+    });
+  },
+  getValue: function getValue() {
+    return this.state._value;
+  },
+  hasValue: function hasValue() {
+    return this.state._value !== '';
+  },
+  getErrorMessage: function getErrorMessage() {
+    var messages = this.getErrorMessages();
+    return messages.length ? messages[0] : null;
+  },
+  getErrorMessages: function getErrorMessages() {
+    return !this.isValid() || this.showRequired() ? this.state._externalError || this.state._validationError || [] : [];
+  },
+  isFormDisabled: function isFormDisabled() {
+    return this.context.formsy.isFormDisabled();
+    //return this.props._isFormDisabled();
+  },
+  isValid: function isValid() {
+    return this.state._isValid;
+  },
+  isPristine: function isPristine() {
+    return this.state._isPristine;
+  },
+  isFormSubmitted: function isFormSubmitted() {
+    return this.state._formSubmitted;
+  },
+  isRequired: function isRequired() {
+    return !!this.props.required;
+  },
+  showRequired: function showRequired() {
+    return this.state._isRequired;
+  },
+  showError: function showError() {
+    return !this.showRequired() && !this.isValid();
+  },
+  isValidValue: function isValidValue(value) {
+    return this.context.formsy.isValidValue.call(null, this, value);
+    //return this.props._isValidValue.call(null, this, value);
+  }
+};
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./utils.js":154,"react":undefined}],153:[function(require,module,exports){
+(function (global){
+'use strict';
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
+var React = global.React || require('react');
+var Formsy = {};
+var validationRules = require('./validationRules.js');
+var formDataToObject = require('form-data-to-object');
+var utils = require('./utils.js');
+var Mixin = require('./Mixin.js');
+var HOC = require('./HOC.js');
+var Decorator = require('./Decorator.js');
+var options = {};
+var emptyArray = [];
+
+Formsy.Mixin = Mixin;
+Formsy.HOC = HOC;
+Formsy.Decorator = Decorator;
+
+Formsy.defaults = function (passedOptions) {
+  options = passedOptions;
+};
+
+Formsy.addValidationRule = function (name, func) {
+  validationRules[name] = func;
+};
+
+Formsy.Form = React.createClass({
+  displayName: 'Formsy',
+  getInitialState: function getInitialState() {
+    return {
+      isValid: true,
+      isSubmitting: false,
+      canChange: false
+    };
+  },
+  getDefaultProps: function getDefaultProps() {
+    return {
+      onSuccess: function onSuccess() {},
+      onError: function onError() {},
+      onSubmit: function onSubmit() {},
+      onValidSubmit: function onValidSubmit() {},
+      onInvalidSubmit: function onInvalidSubmit() {},
+      onValid: function onValid() {},
+      onInvalid: function onInvalid() {},
+      onChange: function onChange() {},
+      validationErrors: null,
+      preventExternalInvalidation: false
+    };
+  },
+
+  childContextTypes: {
+    formsy: React.PropTypes.object
+  },
+  getChildContext: function getChildContext() {
+    var _this = this;
+
+    return {
+      formsy: {
+        attachToForm: this.attachToForm,
+        detachFromForm: this.detachFromForm,
+        validate: this.validate,
+        isFormDisabled: this.isFormDisabled,
+        isValidValue: function isValidValue(component, value) {
+          return _this.runValidation(component, value).isValid;
+        }
+      }
+    };
+  },
+
+  // Add a map to store the inputs of the form, a model to store
+  // the values of the form and register child inputs
+  componentWillMount: function componentWillMount() {
+    this.inputs = [];
+  },
+
+  componentDidMount: function componentDidMount() {
+    this.validateForm();
+  },
+
+  componentWillUpdate: function componentWillUpdate() {
+    // Keep a reference to input names before form updates,
+    // to check if inputs has changed after render
+    this.prevInputNames = this.inputs.map(function (component) {
+      return component.props.name;
+    });
+  },
+
+  componentDidUpdate: function componentDidUpdate() {
+
+    if (this.props.validationErrors && _typeof(this.props.validationErrors) === 'object' && Object.keys(this.props.validationErrors).length > 0) {
+      this.setInputValidationErrors(this.props.validationErrors);
+    }
+
+    var newInputNames = this.inputs.map(function (component) {
+      return component.props.name;
+    });
+    if (utils.arraysDiffer(this.prevInputNames, newInputNames)) {
+      this.validateForm();
+    }
+  },
+
+  // Allow resetting to specified data
+  reset: function reset(data) {
+    this.setFormPristine(true);
+    this.resetModel(data);
+  },
+
+  // Update model, submit to url prop and send the model
+  submit: function submit(event) {
+
+    event && event.preventDefault();
+
+    // Trigger form as not pristine.
+    // If any inputs have not been touched yet this will make them dirty
+    // so validation becomes visible (if based on isPristine)
+    this.setFormPristine(false);
+    var model = this.getModel();
+    this.props.onSubmit(model, this.resetModel, this.updateInputsWithError);
+    this.state.isValid ? this.props.onValidSubmit(model, this.resetModel, this.updateInputsWithError) : this.props.onInvalidSubmit(model, this.resetModel, this.updateInputsWithError);
+  },
+
+  mapModel: function mapModel(model) {
+
+    if (this.props.mapping) {
+      return this.props.mapping(model);
+    } else {
+      return formDataToObject.toObj(Object.keys(model).reduce(function (mappedModel, key) {
+
+        var keyArray = key.split('.');
+        var base = mappedModel;
+        while (keyArray.length) {
+          var currentKey = keyArray.shift();
+          base = base[currentKey] = keyArray.length ? base[currentKey] || {} : model[key];
+        }
+
+        return mappedModel;
+      }, {}));
+    }
+  },
+
+  getModel: function getModel() {
+    var currentValues = this.getCurrentValues();
+    return this.mapModel(currentValues);
+  },
+
+  // Reset each key in the model to the original / initial / specified value
+  resetModel: function resetModel(data) {
+    this.inputs.forEach(function (component) {
+      var name = component.props.name;
+      if (data && data.hasOwnProperty(name)) {
+        component.setValue(data[name]);
+      } else {
+        component.resetValue();
+      }
+    });
+    this.validateForm();
+  },
+
+  setInputValidationErrors: function setInputValidationErrors(errors) {
+    this.inputs.forEach(function (component) {
+      var name = component.props.name;
+      var args = [{
+        _isValid: !(name in errors),
+        _validationError: typeof errors[name] === 'string' ? [errors[name]] : errors[name]
+      }];
+      component.setState.apply(component, args);
+    });
+  },
+
+  // Checks if the values have changed from their initial value
+  isChanged: function isChanged() {
+    return !utils.isSame(this.getPristineValues(), this.getCurrentValues());
+  },
+
+  getPristineValues: function getPristineValues() {
+    return this.inputs.reduce(function (data, component) {
+      var name = component.props.name;
+      data[name] = component.props.value;
+      return data;
+    }, {});
+  },
+
+  // Go through errors from server and grab the components
+  // stored in the inputs map. Change their state to invalid
+  // and set the serverError message
+  updateInputsWithError: function updateInputsWithError(errors) {
+    var _this2 = this;
+
+    Object.keys(errors).forEach(function (name, index) {
+      var component = utils.find(_this2.inputs, function (component) {
+        return component.props.name === name;
+      });
+      if (!component) {
+        throw new Error('You are trying to update an input that does not exist. ' + 'Verify errors object with input names. ' + JSON.stringify(errors));
+      }
+      var args = [{
+        _isValid: _this2.props.preventExternalInvalidation || false,
+        _externalError: typeof errors[name] === 'string' ? [errors[name]] : errors[name]
+      }];
+      component.setState.apply(component, args);
+    });
+  },
+
+  isFormDisabled: function isFormDisabled() {
+    return this.props.disabled;
+  },
+
+  getCurrentValues: function getCurrentValues() {
+    return this.inputs.reduce(function (data, component) {
+      var name = component.props.name;
+      data[name] = component.state._value;
+      return data;
+    }, {});
+  },
+
+  setFormPristine: function setFormPristine(isPristine) {
+    this.setState({
+      _formSubmitted: !isPristine
+    });
+
+    // Iterate through each component and set it as pristine
+    // or "dirty".
+    this.inputs.forEach(function (component, index) {
+      component.setState({
+        _formSubmitted: !isPristine,
+        _isPristine: isPristine
+      });
+    });
+  },
+
+  // Use the binded values and the actual input value to
+  // validate the input and set its state. Then check the
+  // state of the form itself
+  validate: function validate(component) {
+
+    // Trigger onChange
+    if (this.state.canChange) {
+      this.props.onChange(this.getCurrentValues(), this.isChanged());
+    }
+
+    var validation = this.runValidation(component);
+    // Run through the validations, split them up and call
+    // the validator IF there is a value or it is required
+    component.setState({
+      _isValid: validation.isValid,
+      _isRequired: validation.isRequired,
+      _validationError: validation.error,
+      _externalError: null
+    }, this.validateForm);
+  },
+
+  // Checks validation on current value or a passed value
+  runValidation: function runValidation(component, value) {
+
+    var currentValues = this.getCurrentValues();
+    var validationErrors = component.props.validationErrors;
+    var validationError = component.props.validationError;
+    value = arguments.length === 2 ? value : component.state._value;
+
+    var validationResults = this.runRules(value, currentValues, component._validations);
+    var requiredResults = this.runRules(value, currentValues, component._requiredValidations);
+
+    // the component defines an explicit validate function
+    if (typeof component.validate === "function") {
+      validationResults.failed = component.validate() ? [] : ['failed'];
+    }
+
+    var isRequired = Object.keys(component._requiredValidations).length ? !!requiredResults.success.length : false;
+    var isValid = !validationResults.failed.length && !(this.props.validationErrors && this.props.validationErrors[component.props.name]);
+
+    return {
+      isRequired: isRequired,
+      isValid: isRequired ? false : isValid,
+      error: function () {
+
+        if (isValid && !isRequired) {
+          return emptyArray;
+        }
+
+        if (validationResults.errors.length) {
+          return validationResults.errors;
+        }
+
+        if (this.props.validationErrors && this.props.validationErrors[component.props.name]) {
+          return typeof this.props.validationErrors[component.props.name] === 'string' ? [this.props.validationErrors[component.props.name]] : this.props.validationErrors[component.props.name];
+        }
+
+        if (isRequired) {
+          var error = validationErrors[requiredResults.success[0]];
+          return error ? [error] : null;
+        }
+
+        if (validationResults.failed.length) {
+          return validationResults.failed.map(function (failed) {
+            return validationErrors[failed] ? validationErrors[failed] : validationError;
+          }).filter(function (x, pos, arr) {
+            // Remove duplicates
+            return arr.indexOf(x) === pos;
+          });
+        }
+      }.call(this)
+    };
+  },
+
+  runRules: function runRules(value, currentValues, validations) {
+
+    var results = {
+      errors: [],
+      failed: [],
+      success: []
+    };
+    if (Object.keys(validations).length) {
+      Object.keys(validations).forEach(function (validationMethod) {
+
+        if (validationRules[validationMethod] && typeof validations[validationMethod] === 'function') {
+          throw new Error('Formsy does not allow you to override default validations: ' + validationMethod);
+        }
+
+        if (!validationRules[validationMethod] && typeof validations[validationMethod] !== 'function') {
+          throw new Error('Formsy does not have the validation rule: ' + validationMethod);
+        }
+
+        if (typeof validations[validationMethod] === 'function') {
+          var validation = validations[validationMethod](currentValues, value);
+          if (typeof validation === 'string') {
+            results.errors.push(validation);
+            results.failed.push(validationMethod);
+          } else if (!validation) {
+            results.failed.push(validationMethod);
+          }
+          return;
+        } else if (typeof validations[validationMethod] !== 'function') {
+          var validation = validationRules[validationMethod](currentValues, value, validations[validationMethod]);
+          if (typeof validation === 'string') {
+            results.errors.push(validation);
+            results.failed.push(validationMethod);
+          } else if (!validation) {
+            results.failed.push(validationMethod);
+          } else {
+            results.success.push(validationMethod);
+          }
+          return;
+        }
+
+        return results.success.push(validationMethod);
+      });
+    }
+
+    return results;
+  },
+
+  // Validate the form by going through all child input components
+  // and check their state
+  validateForm: function validateForm() {
+    var _this3 = this;
+
+    // We need a callback as we are validating all inputs again. This will
+    // run when the last component has set its state
+    var onValidationComplete = function () {
+      var allIsValid = this.inputs.every(function (component) {
+        return component.state._isValid;
+      });
+
+      this.setState({
+        isValid: allIsValid
+      });
+
+      if (allIsValid) {
+        this.props.onValid();
+      } else {
+        this.props.onInvalid();
+      }
+
+      // Tell the form that it can start to trigger change events
+      this.setState({
+        canChange: true
+      });
+    }.bind(this);
+
+    // Run validation again in case affected by other inputs. The
+    // last component validated will run the onValidationComplete callback
+    this.inputs.forEach(function (component, index) {
+      var validation = _this3.runValidation(component);
+      if (validation.isValid && component.state._externalError) {
+        validation.isValid = false;
+      }
+      component.setState({
+        _isValid: validation.isValid,
+        _isRequired: validation.isRequired,
+        _validationError: validation.error,
+        _externalError: !validation.isValid && component.state._externalError ? component.state._externalError : null
+      }, index === _this3.inputs.length - 1 ? onValidationComplete : null);
+    });
+
+    // If there are no inputs, set state where form is ready to trigger
+    // change event. New inputs might be added later
+    if (!this.inputs.length && this.isMounted()) {
+      this.setState({
+        canChange: true
+      });
+    }
+  },
+
+  // Method put on each input component to register
+  // itself to the form
+  attachToForm: function attachToForm(component) {
+
+    if (this.inputs.indexOf(component) === -1) {
+      this.inputs.push(component);
+    }
+
+    this.validate(component);
+  },
+
+  // Method put on each input component to unregister
+  // itself from the form
+  detachFromForm: function detachFromForm(component) {
+    var componentPos = this.inputs.indexOf(component);
+
+    if (componentPos !== -1) {
+      this.inputs = this.inputs.slice(0, componentPos).concat(this.inputs.slice(componentPos + 1));
+    }
+
+    this.validateForm();
+  },
+  render: function render() {
+    var _props = this.props,
+        mapping = _props.mapping,
+        validationErrors = _props.validationErrors,
+        onSubmit = _props.onSubmit,
+        onValid = _props.onValid,
+        onValidSubmit = _props.onValidSubmit,
+        onInvalid = _props.onInvalid,
+        onInvalidSubmit = _props.onInvalidSubmit,
+        onChange = _props.onChange,
+        reset = _props.reset,
+        preventExternalInvalidation = _props.preventExternalInvalidation,
+        onSuccess = _props.onSuccess,
+        onError = _props.onError,
+        nonFormsyProps = _objectWithoutProperties(_props, ['mapping', 'validationErrors', 'onSubmit', 'onValid', 'onValidSubmit', 'onInvalid', 'onInvalidSubmit', 'onChange', 'reset', 'preventExternalInvalidation', 'onSuccess', 'onError']);
+
+    return React.createElement(
+      'form',
+      _extends({}, nonFormsyProps, { onSubmit: this.submit }),
+      this.props.children
+    );
+  }
+});
+
+if (!global.exports && !global.module && (!global.define || !global.define.amd)) {
+  global.Formsy = Formsy;
+}
+
+module.exports = Formsy;
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./Decorator.js":150,"./HOC.js":151,"./Mixin.js":152,"./utils.js":154,"./validationRules.js":155,"form-data-to-object":149,"react":undefined}],154:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+module.exports = {
+  arraysDiffer: function arraysDiffer(a, b) {
+    var isDifferent = false;
+    if (a.length !== b.length) {
+      isDifferent = true;
+    } else {
+      a.forEach(function (item, index) {
+        if (!this.isSame(item, b[index])) {
+          isDifferent = true;
+        }
+      }, this);
+    }
+    return isDifferent;
+  },
+
+  objectsDiffer: function objectsDiffer(a, b) {
+    var isDifferent = false;
+    if (Object.keys(a).length !== Object.keys(b).length) {
+      isDifferent = true;
+    } else {
+      Object.keys(a).forEach(function (key) {
+        if (!this.isSame(a[key], b[key])) {
+          isDifferent = true;
+        }
+      }, this);
+    }
+    return isDifferent;
+  },
+
+  isSame: function isSame(a, b) {
+    if ((typeof a === 'undefined' ? 'undefined' : _typeof(a)) !== (typeof b === 'undefined' ? 'undefined' : _typeof(b))) {
+      return false;
+    } else if (Array.isArray(a) && Array.isArray(b)) {
+      return !this.arraysDiffer(a, b);
+    } else if (typeof a === 'function') {
+      return a.toString() === b.toString();
+    } else if ((typeof a === 'undefined' ? 'undefined' : _typeof(a)) === 'object' && a !== null && b !== null) {
+      return !this.objectsDiffer(a, b);
+    }
+
+    return a === b;
+  },
+
+  find: function find(collection, fn) {
+    for (var i = 0, l = collection.length; i < l; i++) {
+      var item = collection[i];
+      if (fn(item)) {
+        return item;
+      }
+    }
+    return null;
+  }
+};
+},{}],155:[function(require,module,exports){
+'use strict';
+
+var _isExisty = function _isExisty(value) {
+  return value !== null && value !== undefined;
+};
+
+var isEmpty = function isEmpty(value) {
+  return value === '';
+};
+
+var validations = {
+  isDefaultRequiredValue: function isDefaultRequiredValue(values, value) {
+    return value === undefined || value === '';
+  },
+  isExisty: function isExisty(values, value) {
+    return _isExisty(value);
+  },
+  matchRegexp: function matchRegexp(values, value, regexp) {
+    return !_isExisty(value) || isEmpty(value) || regexp.test(value);
+  },
+  isUndefined: function isUndefined(values, value) {
+    return value === undefined;
+  },
+  isEmptyString: function isEmptyString(values, value) {
+    return isEmpty(value);
+  },
+  isEmail: function isEmail(values, value) {
+    return validations.matchRegexp(values, value, /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))$/i);
+  },
+  isUrl: function isUrl(values, value) {
+    return validations.matchRegexp(values, value, /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i);
+  },
+  isTrue: function isTrue(values, value) {
+    return value === true;
+  },
+  isFalse: function isFalse(values, value) {
+    return value === false;
+  },
+  isNumeric: function isNumeric(values, value) {
+    if (typeof value === 'number') {
+      return true;
+    }
+    return validations.matchRegexp(values, value, /^[-+]?(?:\d*[.])?\d+$/);
+  },
+  isAlpha: function isAlpha(values, value) {
+    return validations.matchRegexp(values, value, /^[A-Z]+$/i);
+  },
+  isAlphanumeric: function isAlphanumeric(values, value) {
+    return validations.matchRegexp(values, value, /^[0-9A-Z]+$/i);
+  },
+  isInt: function isInt(values, value) {
+    return validations.matchRegexp(values, value, /^(?:[-+]?(?:0|[1-9]\d*))$/);
+  },
+  isFloat: function isFloat(values, value) {
+    return validations.matchRegexp(values, value, /^(?:[-+]?(?:\d+))?(?:\.\d*)?(?:[eE][\+\-]?(?:\d+))?$/);
+  },
+  isWords: function isWords(values, value) {
+    return validations.matchRegexp(values, value, /^[A-Z\s]+$/i);
+  },
+  isSpecialWords: function isSpecialWords(values, value) {
+    return validations.matchRegexp(values, value, /^[A-Z\s\u00C0-\u017F]+$/i);
+  },
+  isLength: function isLength(values, value, length) {
+    return !_isExisty(value) || isEmpty(value) || value.length === length;
+  },
+  equals: function equals(values, value, eql) {
+    return !_isExisty(value) || isEmpty(value) || value == eql;
+  },
+  equalsField: function equalsField(values, value, field) {
+    return value == values[field];
+  },
+  maxLength: function maxLength(values, value, length) {
+    return !_isExisty(value) || value.length <= length;
+  },
+  minLength: function minLength(values, value, length) {
+    return !_isExisty(value) || isEmpty(value) || value.length >= length;
+  }
+};
+
+module.exports = validations;
+},{}],156:[function(require,module,exports){
 /**
  *  Copyright (c) 2014-2015, Facebook, Inc.
  *  All rights reserved.
@@ -16744,7 +18706,7 @@ module.exports = global.setImmediate;
   return Immutable;
 
 }));
-},{}],139:[function(require,module,exports){
+},{}],157:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -16836,7 +18798,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],140:[function(require,module,exports){
+},{}],158:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -17018,7 +18980,1774 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],141:[function(require,module,exports){
+},{}],159:[function(require,module,exports){
+/**
+ * Copyright 2013-present, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ *
+ */
+
+'use strict';
+
+/**
+ * CSS properties which accept numbers but are not in units of "px".
+ */
+
+var isUnitlessNumber = {
+  animationIterationCount: true,
+  borderImageOutset: true,
+  borderImageSlice: true,
+  borderImageWidth: true,
+  boxFlex: true,
+  boxFlexGroup: true,
+  boxOrdinalGroup: true,
+  columnCount: true,
+  flex: true,
+  flexGrow: true,
+  flexPositive: true,
+  flexShrink: true,
+  flexNegative: true,
+  flexOrder: true,
+  gridRow: true,
+  gridColumn: true,
+  fontWeight: true,
+  lineClamp: true,
+  lineHeight: true,
+  opacity: true,
+  order: true,
+  orphans: true,
+  tabSize: true,
+  widows: true,
+  zIndex: true,
+  zoom: true,
+
+  // SVG-related properties
+  fillOpacity: true,
+  floodOpacity: true,
+  stopOpacity: true,
+  strokeDasharray: true,
+  strokeDashoffset: true,
+  strokeMiterlimit: true,
+  strokeOpacity: true,
+  strokeWidth: true
+};
+
+/**
+ * @param {string} prefix vendor-specific prefix, eg: Webkit
+ * @param {string} key style name, eg: transitionDuration
+ * @return {string} style name prefixed with `prefix`, properly camelCased, eg:
+ * WebkitTransitionDuration
+ */
+function prefixKey(prefix, key) {
+  return prefix + key.charAt(0).toUpperCase() + key.substring(1);
+}
+
+/**
+ * Support style names that may come passed in prefixed by adding permutations
+ * of vendor prefixes.
+ */
+var prefixes = ['Webkit', 'ms', 'Moz', 'O'];
+
+// Using Object.keys here, or else the vanilla for-in loop makes IE8 go into an
+// infinite loop, because it iterates over the newly added props too.
+Object.keys(isUnitlessNumber).forEach(function (prop) {
+  prefixes.forEach(function (prefix) {
+    isUnitlessNumber[prefixKey(prefix, prop)] = isUnitlessNumber[prop];
+  });
+});
+
+/**
+ * Most style properties can be unset by doing .style[prop] = '' but IE8
+ * doesn't like doing that with shorthand properties so for the properties that
+ * IE8 breaks on, which are listed here, we instead unset each of the
+ * individual properties. See http://bugs.jquery.com/ticket/12385.
+ * The 4-value 'clock' properties like margin, padding, border-width seem to
+ * behave without any problems. Curiously, list-style works too without any
+ * special prodding.
+ */
+var shorthandPropertyExpansions = {
+  background: {
+    backgroundAttachment: true,
+    backgroundColor: true,
+    backgroundImage: true,
+    backgroundPositionX: true,
+    backgroundPositionY: true,
+    backgroundRepeat: true
+  },
+  backgroundPosition: {
+    backgroundPositionX: true,
+    backgroundPositionY: true
+  },
+  border: {
+    borderWidth: true,
+    borderStyle: true,
+    borderColor: true
+  },
+  borderBottom: {
+    borderBottomWidth: true,
+    borderBottomStyle: true,
+    borderBottomColor: true
+  },
+  borderLeft: {
+    borderLeftWidth: true,
+    borderLeftStyle: true,
+    borderLeftColor: true
+  },
+  borderRight: {
+    borderRightWidth: true,
+    borderRightStyle: true,
+    borderRightColor: true
+  },
+  borderTop: {
+    borderTopWidth: true,
+    borderTopStyle: true,
+    borderTopColor: true
+  },
+  font: {
+    fontStyle: true,
+    fontVariant: true,
+    fontWeight: true,
+    fontSize: true,
+    lineHeight: true,
+    fontFamily: true
+  },
+  outline: {
+    outlineWidth: true,
+    outlineStyle: true,
+    outlineColor: true
+  }
+};
+
+var CSSProperty = {
+  isUnitlessNumber: isUnitlessNumber,
+  shorthandPropertyExpansions: shorthandPropertyExpansions
+};
+
+module.exports = CSSProperty;
+},{}],160:[function(require,module,exports){
+// GENERATED DO NOT EDIT
+module.exports = [
+  "alignContent",
+  "MozAlignContent",
+  "WebkitAlignContent",
+  "MSAlignContent",
+  "OAlignContent",
+  "alignItems",
+  "MozAlignItems",
+  "WebkitAlignItems",
+  "MSAlignItems",
+  "OAlignItems",
+  "alignSelf",
+  "MozAlignSelf",
+  "WebkitAlignSelf",
+  "MSAlignSelf",
+  "OAlignSelf",
+  "all",
+  "MozAll",
+  "WebkitAll",
+  "MSAll",
+  "OAll",
+  "animation",
+  "MozAnimation",
+  "WebkitAnimation",
+  "MSAnimation",
+  "OAnimation",
+  "animationDelay",
+  "MozAnimationDelay",
+  "WebkitAnimationDelay",
+  "MSAnimationDelay",
+  "OAnimationDelay",
+  "animationDirection",
+  "MozAnimationDirection",
+  "WebkitAnimationDirection",
+  "MSAnimationDirection",
+  "OAnimationDirection",
+  "animationDuration",
+  "MozAnimationDuration",
+  "WebkitAnimationDuration",
+  "MSAnimationDuration",
+  "OAnimationDuration",
+  "animationFillMode",
+  "MozAnimationFillMode",
+  "WebkitAnimationFillMode",
+  "MSAnimationFillMode",
+  "OAnimationFillMode",
+  "animationIterationCount",
+  "MozAnimationIterationCount",
+  "WebkitAnimationIterationCount",
+  "MSAnimationIterationCount",
+  "OAnimationIterationCount",
+  "animationName",
+  "MozAnimationName",
+  "WebkitAnimationName",
+  "MSAnimationName",
+  "OAnimationName",
+  "animationPlayState",
+  "MozAnimationPlayState",
+  "WebkitAnimationPlayState",
+  "MSAnimationPlayState",
+  "OAnimationPlayState",
+  "animationTimingFunction",
+  "MozAnimationTimingFunction",
+  "WebkitAnimationTimingFunction",
+  "MSAnimationTimingFunction",
+  "OAnimationTimingFunction",
+  "backfaceVisibility",
+  "MozBackfaceVisibility",
+  "WebkitBackfaceVisibility",
+  "MSBackfaceVisibility",
+  "OBackfaceVisibility",
+  "background",
+  "MozBackground",
+  "WebkitBackground",
+  "MSBackground",
+  "OBackground",
+  "backgroundAttachment",
+  "MozBackgroundAttachment",
+  "WebkitBackgroundAttachment",
+  "MSBackgroundAttachment",
+  "OBackgroundAttachment",
+  "backgroundBlendMode",
+  "MozBackgroundBlendMode",
+  "WebkitBackgroundBlendMode",
+  "MSBackgroundBlendMode",
+  "OBackgroundBlendMode",
+  "backgroundClip",
+  "MozBackgroundClip",
+  "WebkitBackgroundClip",
+  "MSBackgroundClip",
+  "OBackgroundClip",
+  "backgroundColor",
+  "MozBackgroundColor",
+  "WebkitBackgroundColor",
+  "MSBackgroundColor",
+  "OBackgroundColor",
+  "backgroundImage",
+  "MozBackgroundImage",
+  "WebkitBackgroundImage",
+  "MSBackgroundImage",
+  "OBackgroundImage",
+  "backgroundOrigin",
+  "MozBackgroundOrigin",
+  "WebkitBackgroundOrigin",
+  "MSBackgroundOrigin",
+  "OBackgroundOrigin",
+  "backgroundPosition",
+  "MozBackgroundPosition",
+  "WebkitBackgroundPosition",
+  "MSBackgroundPosition",
+  "OBackgroundPosition",
+  "backgroundRepeat",
+  "MozBackgroundRepeat",
+  "WebkitBackgroundRepeat",
+  "MSBackgroundRepeat",
+  "OBackgroundRepeat",
+  "backgroundSize",
+  "MozBackgroundSize",
+  "WebkitBackgroundSize",
+  "MSBackgroundSize",
+  "OBackgroundSize",
+  "blockSize",
+  "MozBlockSize",
+  "WebkitBlockSize",
+  "MSBlockSize",
+  "OBlockSize",
+  "border",
+  "MozBorder",
+  "WebkitBorder",
+  "MSBorder",
+  "OBorder",
+  "borderBlockEnd",
+  "MozBorderBlockEnd",
+  "WebkitBorderBlockEnd",
+  "MSBorderBlockEnd",
+  "OBorderBlockEnd",
+  "borderBlockEndColor",
+  "MozBorderBlockEndColor",
+  "WebkitBorderBlockEndColor",
+  "MSBorderBlockEndColor",
+  "OBorderBlockEndColor",
+  "borderBlockEndStyle",
+  "MozBorderBlockEndStyle",
+  "WebkitBorderBlockEndStyle",
+  "MSBorderBlockEndStyle",
+  "OBorderBlockEndStyle",
+  "borderBlockEndWidth",
+  "MozBorderBlockEndWidth",
+  "WebkitBorderBlockEndWidth",
+  "MSBorderBlockEndWidth",
+  "OBorderBlockEndWidth",
+  "borderBlockStart",
+  "MozBorderBlockStart",
+  "WebkitBorderBlockStart",
+  "MSBorderBlockStart",
+  "OBorderBlockStart",
+  "borderBlockStartColor",
+  "MozBorderBlockStartColor",
+  "WebkitBorderBlockStartColor",
+  "MSBorderBlockStartColor",
+  "OBorderBlockStartColor",
+  "borderBlockStartStyle",
+  "MozBorderBlockStartStyle",
+  "WebkitBorderBlockStartStyle",
+  "MSBorderBlockStartStyle",
+  "OBorderBlockStartStyle",
+  "borderBlockStartWidth",
+  "MozBorderBlockStartWidth",
+  "WebkitBorderBlockStartWidth",
+  "MSBorderBlockStartWidth",
+  "OBorderBlockStartWidth",
+  "borderBottom",
+  "MozBorderBottom",
+  "WebkitBorderBottom",
+  "MSBorderBottom",
+  "OBorderBottom",
+  "borderBottomColor",
+  "MozBorderBottomColor",
+  "WebkitBorderBottomColor",
+  "MSBorderBottomColor",
+  "OBorderBottomColor",
+  "borderBottomLeftRadius",
+  "MozBorderBottomLeftRadius",
+  "WebkitBorderBottomLeftRadius",
+  "MSBorderBottomLeftRadius",
+  "OBorderBottomLeftRadius",
+  "borderBottomRightRadius",
+  "MozBorderBottomRightRadius",
+  "WebkitBorderBottomRightRadius",
+  "MSBorderBottomRightRadius",
+  "OBorderBottomRightRadius",
+  "borderBottomStyle",
+  "MozBorderBottomStyle",
+  "WebkitBorderBottomStyle",
+  "MSBorderBottomStyle",
+  "OBorderBottomStyle",
+  "borderBottomWidth",
+  "MozBorderBottomWidth",
+  "WebkitBorderBottomWidth",
+  "MSBorderBottomWidth",
+  "OBorderBottomWidth",
+  "borderCollapse",
+  "MozBorderCollapse",
+  "WebkitBorderCollapse",
+  "MSBorderCollapse",
+  "OBorderCollapse",
+  "borderColor",
+  "MozBorderColor",
+  "WebkitBorderColor",
+  "MSBorderColor",
+  "OBorderColor",
+  "borderImage",
+  "MozBorderImage",
+  "WebkitBorderImage",
+  "MSBorderImage",
+  "OBorderImage",
+  "borderImageOutset",
+  "MozBorderImageOutset",
+  "WebkitBorderImageOutset",
+  "MSBorderImageOutset",
+  "OBorderImageOutset",
+  "borderImageRepeat",
+  "MozBorderImageRepeat",
+  "WebkitBorderImageRepeat",
+  "MSBorderImageRepeat",
+  "OBorderImageRepeat",
+  "borderImageSlice",
+  "MozBorderImageSlice",
+  "WebkitBorderImageSlice",
+  "MSBorderImageSlice",
+  "OBorderImageSlice",
+  "borderImageSource",
+  "MozBorderImageSource",
+  "WebkitBorderImageSource",
+  "MSBorderImageSource",
+  "OBorderImageSource",
+  "borderImageWidth",
+  "MozBorderImageWidth",
+  "WebkitBorderImageWidth",
+  "MSBorderImageWidth",
+  "OBorderImageWidth",
+  "borderInlineEnd",
+  "MozBorderInlineEnd",
+  "WebkitBorderInlineEnd",
+  "MSBorderInlineEnd",
+  "OBorderInlineEnd",
+  "borderInlineEndColor",
+  "MozBorderInlineEndColor",
+  "WebkitBorderInlineEndColor",
+  "MSBorderInlineEndColor",
+  "OBorderInlineEndColor",
+  "borderInlineEndStyle",
+  "MozBorderInlineEndStyle",
+  "WebkitBorderInlineEndStyle",
+  "MSBorderInlineEndStyle",
+  "OBorderInlineEndStyle",
+  "borderInlineEndWidth",
+  "MozBorderInlineEndWidth",
+  "WebkitBorderInlineEndWidth",
+  "MSBorderInlineEndWidth",
+  "OBorderInlineEndWidth",
+  "borderInlineStart",
+  "MozBorderInlineStart",
+  "WebkitBorderInlineStart",
+  "MSBorderInlineStart",
+  "OBorderInlineStart",
+  "borderInlineStartColor",
+  "MozBorderInlineStartColor",
+  "WebkitBorderInlineStartColor",
+  "MSBorderInlineStartColor",
+  "OBorderInlineStartColor",
+  "borderInlineStartStyle",
+  "MozBorderInlineStartStyle",
+  "WebkitBorderInlineStartStyle",
+  "MSBorderInlineStartStyle",
+  "OBorderInlineStartStyle",
+  "borderInlineStartWidth",
+  "MozBorderInlineStartWidth",
+  "WebkitBorderInlineStartWidth",
+  "MSBorderInlineStartWidth",
+  "OBorderInlineStartWidth",
+  "borderLeft",
+  "MozBorderLeft",
+  "WebkitBorderLeft",
+  "MSBorderLeft",
+  "OBorderLeft",
+  "borderLeftColor",
+  "MozBorderLeftColor",
+  "WebkitBorderLeftColor",
+  "MSBorderLeftColor",
+  "OBorderLeftColor",
+  "borderLeftStyle",
+  "MozBorderLeftStyle",
+  "WebkitBorderLeftStyle",
+  "MSBorderLeftStyle",
+  "OBorderLeftStyle",
+  "borderLeftWidth",
+  "MozBorderLeftWidth",
+  "WebkitBorderLeftWidth",
+  "MSBorderLeftWidth",
+  "OBorderLeftWidth",
+  "borderRadius",
+  "MozBorderRadius",
+  "WebkitBorderRadius",
+  "MSBorderRadius",
+  "OBorderRadius",
+  "borderRight",
+  "MozBorderRight",
+  "WebkitBorderRight",
+  "MSBorderRight",
+  "OBorderRight",
+  "borderRightColor",
+  "MozBorderRightColor",
+  "WebkitBorderRightColor",
+  "MSBorderRightColor",
+  "OBorderRightColor",
+  "borderRightStyle",
+  "MozBorderRightStyle",
+  "WebkitBorderRightStyle",
+  "MSBorderRightStyle",
+  "OBorderRightStyle",
+  "borderRightWidth",
+  "MozBorderRightWidth",
+  "WebkitBorderRightWidth",
+  "MSBorderRightWidth",
+  "OBorderRightWidth",
+  "borderSpacing",
+  "MozBorderSpacing",
+  "WebkitBorderSpacing",
+  "MSBorderSpacing",
+  "OBorderSpacing",
+  "borderStyle",
+  "MozBorderStyle",
+  "WebkitBorderStyle",
+  "MSBorderStyle",
+  "OBorderStyle",
+  "borderTop",
+  "MozBorderTop",
+  "WebkitBorderTop",
+  "MSBorderTop",
+  "OBorderTop",
+  "borderTopColor",
+  "MozBorderTopColor",
+  "WebkitBorderTopColor",
+  "MSBorderTopColor",
+  "OBorderTopColor",
+  "borderTopLeftRadius",
+  "MozBorderTopLeftRadius",
+  "WebkitBorderTopLeftRadius",
+  "MSBorderTopLeftRadius",
+  "OBorderTopLeftRadius",
+  "borderTopRightRadius",
+  "MozBorderTopRightRadius",
+  "WebkitBorderTopRightRadius",
+  "MSBorderTopRightRadius",
+  "OBorderTopRightRadius",
+  "borderTopStyle",
+  "MozBorderTopStyle",
+  "WebkitBorderTopStyle",
+  "MSBorderTopStyle",
+  "OBorderTopStyle",
+  "borderTopWidth",
+  "MozBorderTopWidth",
+  "WebkitBorderTopWidth",
+  "MSBorderTopWidth",
+  "OBorderTopWidth",
+  "borderWidth",
+  "MozBorderWidth",
+  "WebkitBorderWidth",
+  "MSBorderWidth",
+  "OBorderWidth",
+  "bottom",
+  "MozBottom",
+  "WebkitBottom",
+  "MSBottom",
+  "OBottom",
+  "boxDecorationBreak",
+  "MozBoxDecorationBreak",
+  "WebkitBoxDecorationBreak",
+  "MSBoxDecorationBreak",
+  "OBoxDecorationBreak",
+  "boxShadow",
+  "MozBoxShadow",
+  "WebkitBoxShadow",
+  "MSBoxShadow",
+  "OBoxShadow",
+  "boxSizing",
+  "MozBoxSizing",
+  "WebkitBoxSizing",
+  "MSBoxSizing",
+  "OBoxSizing",
+  "breakAfter",
+  "MozBreakAfter",
+  "WebkitBreakAfter",
+  "MSBreakAfter",
+  "OBreakAfter",
+  "breakBefore",
+  "MozBreakBefore",
+  "WebkitBreakBefore",
+  "MSBreakBefore",
+  "OBreakBefore",
+  "breakInside",
+  "MozBreakInside",
+  "WebkitBreakInside",
+  "MSBreakInside",
+  "OBreakInside",
+  "captionSide",
+  "MozCaptionSide",
+  "WebkitCaptionSide",
+  "MSCaptionSide",
+  "OCaptionSide",
+  "caretColor",
+  "MozCaretColor",
+  "WebkitCaretColor",
+  "MSCaretColor",
+  "OCaretColor",
+  "ch",
+  "MozCh",
+  "WebkitCh",
+  "MSCh",
+  "OCh",
+  "clear",
+  "MozClear",
+  "WebkitClear",
+  "MSClear",
+  "OClear",
+  "clip",
+  "MozClip",
+  "WebkitClip",
+  "MSClip",
+  "OClip",
+  "clipPath",
+  "MozClipPath",
+  "WebkitClipPath",
+  "MSClipPath",
+  "OClipPath",
+  "cm",
+  "MozCm",
+  "WebkitCm",
+  "MSCm",
+  "OCm",
+  "color",
+  "MozColor",
+  "WebkitColor",
+  "MSColor",
+  "OColor",
+  "columnCount",
+  "MozColumnCount",
+  "WebkitColumnCount",
+  "MSColumnCount",
+  "OColumnCount",
+  "columnFill",
+  "MozColumnFill",
+  "WebkitColumnFill",
+  "MSColumnFill",
+  "OColumnFill",
+  "columnGap",
+  "MozColumnGap",
+  "WebkitColumnGap",
+  "MSColumnGap",
+  "OColumnGap",
+  "columnRule",
+  "MozColumnRule",
+  "WebkitColumnRule",
+  "MSColumnRule",
+  "OColumnRule",
+  "columnRuleColor",
+  "MozColumnRuleColor",
+  "WebkitColumnRuleColor",
+  "MSColumnRuleColor",
+  "OColumnRuleColor",
+  "columnRuleStyle",
+  "MozColumnRuleStyle",
+  "WebkitColumnRuleStyle",
+  "MSColumnRuleStyle",
+  "OColumnRuleStyle",
+  "columnRuleWidth",
+  "MozColumnRuleWidth",
+  "WebkitColumnRuleWidth",
+  "MSColumnRuleWidth",
+  "OColumnRuleWidth",
+  "columnSpan",
+  "MozColumnSpan",
+  "WebkitColumnSpan",
+  "MSColumnSpan",
+  "OColumnSpan",
+  "columnWidth",
+  "MozColumnWidth",
+  "WebkitColumnWidth",
+  "MSColumnWidth",
+  "OColumnWidth",
+  "columns",
+  "MozColumns",
+  "WebkitColumns",
+  "MSColumns",
+  "OColumns",
+  "content",
+  "MozContent",
+  "WebkitContent",
+  "MSContent",
+  "OContent",
+  "counterIncrement",
+  "MozCounterIncrement",
+  "WebkitCounterIncrement",
+  "MSCounterIncrement",
+  "OCounterIncrement",
+  "counterReset",
+  "MozCounterReset",
+  "WebkitCounterReset",
+  "MSCounterReset",
+  "OCounterReset",
+  "cursor",
+  "MozCursor",
+  "WebkitCursor",
+  "MSCursor",
+  "OCursor",
+  "deg",
+  "MozDeg",
+  "WebkitDeg",
+  "MSDeg",
+  "ODeg",
+  "direction",
+  "MozDirection",
+  "WebkitDirection",
+  "MSDirection",
+  "ODirection",
+  "display",
+  "MozDisplay",
+  "WebkitDisplay",
+  "MSDisplay",
+  "ODisplay",
+  "dpcm",
+  "MozDpcm",
+  "WebkitDpcm",
+  "MSDpcm",
+  "ODpcm",
+  "dpi",
+  "MozDpi",
+  "WebkitDpi",
+  "MSDpi",
+  "ODpi",
+  "dppx",
+  "MozDppx",
+  "WebkitDppx",
+  "MSDppx",
+  "ODppx",
+  "em",
+  "MozEm",
+  "WebkitEm",
+  "MSEm",
+  "OEm",
+  "emptyCells",
+  "MozEmptyCells",
+  "WebkitEmptyCells",
+  "MSEmptyCells",
+  "OEmptyCells",
+  "ex",
+  "MozEx",
+  "WebkitEx",
+  "MSEx",
+  "OEx",
+  "filter",
+  "MozFilter",
+  "WebkitFilter",
+  "MSFilter",
+  "OFilter",
+  "flexBasis",
+  "MozFlexBasis",
+  "WebkitFlexBasis",
+  "MSFlexBasis",
+  "OFlexBasis",
+  "flexDirection",
+  "MozFlexDirection",
+  "WebkitFlexDirection",
+  "MSFlexDirection",
+  "OFlexDirection",
+  "flexFlow",
+  "MozFlexFlow",
+  "WebkitFlexFlow",
+  "MSFlexFlow",
+  "OFlexFlow",
+  "flexGrow",
+  "MozFlexGrow",
+  "WebkitFlexGrow",
+  "MSFlexGrow",
+  "OFlexGrow",
+  "flexShrink",
+  "MozFlexShrink",
+  "WebkitFlexShrink",
+  "MSFlexShrink",
+  "OFlexShrink",
+  "flexWrap",
+  "MozFlexWrap",
+  "WebkitFlexWrap",
+  "MSFlexWrap",
+  "OFlexWrap",
+  "float",
+  "MozFloat",
+  "WebkitFloat",
+  "MSFloat",
+  "OFloat",
+  "font",
+  "MozFont",
+  "WebkitFont",
+  "MSFont",
+  "OFont",
+  "fontFamily",
+  "MozFontFamily",
+  "WebkitFontFamily",
+  "MSFontFamily",
+  "OFontFamily",
+  "fontFeatureSettings",
+  "MozFontFeatureSettings",
+  "WebkitFontFeatureSettings",
+  "MSFontFeatureSettings",
+  "OFontFeatureSettings",
+  "fontKerning",
+  "MozFontKerning",
+  "WebkitFontKerning",
+  "MSFontKerning",
+  "OFontKerning",
+  "fontLanguageOverride",
+  "MozFontLanguageOverride",
+  "WebkitFontLanguageOverride",
+  "MSFontLanguageOverride",
+  "OFontLanguageOverride",
+  "fontSize",
+  "MozFontSize",
+  "WebkitFontSize",
+  "MSFontSize",
+  "OFontSize",
+  "fontSizeAdjust",
+  "MozFontSizeAdjust",
+  "WebkitFontSizeAdjust",
+  "MSFontSizeAdjust",
+  "OFontSizeAdjust",
+  "fontStretch",
+  "MozFontStretch",
+  "WebkitFontStretch",
+  "MSFontStretch",
+  "OFontStretch",
+  "fontStyle",
+  "MozFontStyle",
+  "WebkitFontStyle",
+  "MSFontStyle",
+  "OFontStyle",
+  "fontSynthesis",
+  "MozFontSynthesis",
+  "WebkitFontSynthesis",
+  "MSFontSynthesis",
+  "OFontSynthesis",
+  "fontVariant",
+  "MozFontVariant",
+  "WebkitFontVariant",
+  "MSFontVariant",
+  "OFontVariant",
+  "fontVariantAlternates",
+  "MozFontVariantAlternates",
+  "WebkitFontVariantAlternates",
+  "MSFontVariantAlternates",
+  "OFontVariantAlternates",
+  "fontVariantCaps",
+  "MozFontVariantCaps",
+  "WebkitFontVariantCaps",
+  "MSFontVariantCaps",
+  "OFontVariantCaps",
+  "fontVariantEastAsian",
+  "MozFontVariantEastAsian",
+  "WebkitFontVariantEastAsian",
+  "MSFontVariantEastAsian",
+  "OFontVariantEastAsian",
+  "fontVariantLigatures",
+  "MozFontVariantLigatures",
+  "WebkitFontVariantLigatures",
+  "MSFontVariantLigatures",
+  "OFontVariantLigatures",
+  "fontVariantNumeric",
+  "MozFontVariantNumeric",
+  "WebkitFontVariantNumeric",
+  "MSFontVariantNumeric",
+  "OFontVariantNumeric",
+  "fontVariantPosition",
+  "MozFontVariantPosition",
+  "WebkitFontVariantPosition",
+  "MSFontVariantPosition",
+  "OFontVariantPosition",
+  "fontWeight",
+  "MozFontWeight",
+  "WebkitFontWeight",
+  "MSFontWeight",
+  "OFontWeight",
+  "fr",
+  "MozFr",
+  "WebkitFr",
+  "MSFr",
+  "OFr",
+  "grad",
+  "MozGrad",
+  "WebkitGrad",
+  "MSGrad",
+  "OGrad",
+  "grid",
+  "MozGrid",
+  "WebkitGrid",
+  "MSGrid",
+  "OGrid",
+  "gridArea",
+  "MozGridArea",
+  "WebkitGridArea",
+  "MSGridArea",
+  "OGridArea",
+  "gridAutoColumns",
+  "MozGridAutoColumns",
+  "WebkitGridAutoColumns",
+  "MSGridAutoColumns",
+  "OGridAutoColumns",
+  "gridAutoFlow",
+  "MozGridAutoFlow",
+  "WebkitGridAutoFlow",
+  "MSGridAutoFlow",
+  "OGridAutoFlow",
+  "gridAutoRows",
+  "MozGridAutoRows",
+  "WebkitGridAutoRows",
+  "MSGridAutoRows",
+  "OGridAutoRows",
+  "gridColumn",
+  "MozGridColumn",
+  "WebkitGridColumn",
+  "MSGridColumn",
+  "OGridColumn",
+  "gridColumnEnd",
+  "MozGridColumnEnd",
+  "WebkitGridColumnEnd",
+  "MSGridColumnEnd",
+  "OGridColumnEnd",
+  "gridColumnGap",
+  "MozGridColumnGap",
+  "WebkitGridColumnGap",
+  "MSGridColumnGap",
+  "OGridColumnGap",
+  "gridColumnStart",
+  "MozGridColumnStart",
+  "WebkitGridColumnStart",
+  "MSGridColumnStart",
+  "OGridColumnStart",
+  "gridGap",
+  "MozGridGap",
+  "WebkitGridGap",
+  "MSGridGap",
+  "OGridGap",
+  "gridRow",
+  "MozGridRow",
+  "WebkitGridRow",
+  "MSGridRow",
+  "OGridRow",
+  "gridRowEnd",
+  "MozGridRowEnd",
+  "WebkitGridRowEnd",
+  "MSGridRowEnd",
+  "OGridRowEnd",
+  "gridRowGap",
+  "MozGridRowGap",
+  "WebkitGridRowGap",
+  "MSGridRowGap",
+  "OGridRowGap",
+  "gridRowStart",
+  "MozGridRowStart",
+  "WebkitGridRowStart",
+  "MSGridRowStart",
+  "OGridRowStart",
+  "gridTemplate",
+  "MozGridTemplate",
+  "WebkitGridTemplate",
+  "MSGridTemplate",
+  "OGridTemplate",
+  "gridTemplateAreas",
+  "MozGridTemplateAreas",
+  "WebkitGridTemplateAreas",
+  "MSGridTemplateAreas",
+  "OGridTemplateAreas",
+  "gridTemplateColumns",
+  "MozGridTemplateColumns",
+  "WebkitGridTemplateColumns",
+  "MSGridTemplateColumns",
+  "OGridTemplateColumns",
+  "gridTemplateRows",
+  "MozGridTemplateRows",
+  "WebkitGridTemplateRows",
+  "MSGridTemplateRows",
+  "OGridTemplateRows",
+  "height",
+  "MozHeight",
+  "WebkitHeight",
+  "MSHeight",
+  "OHeight",
+  "hyphens",
+  "MozHyphens",
+  "WebkitHyphens",
+  "MSHyphens",
+  "OHyphens",
+  "hz",
+  "MozHz",
+  "WebkitHz",
+  "MSHz",
+  "OHz",
+  "imageOrientation",
+  "MozImageOrientation",
+  "WebkitImageOrientation",
+  "MSImageOrientation",
+  "OImageOrientation",
+  "imageRendering",
+  "MozImageRendering",
+  "WebkitImageRendering",
+  "MSImageRendering",
+  "OImageRendering",
+  "imageResolution",
+  "MozImageResolution",
+  "WebkitImageResolution",
+  "MSImageResolution",
+  "OImageResolution",
+  "imeMode",
+  "MozImeMode",
+  "WebkitImeMode",
+  "MSImeMode",
+  "OImeMode",
+  "in",
+  "MozIn",
+  "WebkitIn",
+  "MSIn",
+  "OIn",
+  "inherit",
+  "MozInherit",
+  "WebkitInherit",
+  "MSInherit",
+  "OInherit",
+  "initial",
+  "MozInitial",
+  "WebkitInitial",
+  "MSInitial",
+  "OInitial",
+  "inlineSize",
+  "MozInlineSize",
+  "WebkitInlineSize",
+  "MSInlineSize",
+  "OInlineSize",
+  "isolation",
+  "MozIsolation",
+  "WebkitIsolation",
+  "MSIsolation",
+  "OIsolation",
+  "justifyContent",
+  "MozJustifyContent",
+  "WebkitJustifyContent",
+  "MSJustifyContent",
+  "OJustifyContent",
+  "khz",
+  "MozKhz",
+  "WebkitKhz",
+  "MSKhz",
+  "OKhz",
+  "left",
+  "MozLeft",
+  "WebkitLeft",
+  "MSLeft",
+  "OLeft",
+  "letterSpacing",
+  "MozLetterSpacing",
+  "WebkitLetterSpacing",
+  "MSLetterSpacing",
+  "OLetterSpacing",
+  "lineBreak",
+  "MozLineBreak",
+  "WebkitLineBreak",
+  "MSLineBreak",
+  "OLineBreak",
+  "lineHeight",
+  "MozLineHeight",
+  "WebkitLineHeight",
+  "MSLineHeight",
+  "OLineHeight",
+  "listStyle",
+  "MozListStyle",
+  "WebkitListStyle",
+  "MSListStyle",
+  "OListStyle",
+  "listStyleImage",
+  "MozListStyleImage",
+  "WebkitListStyleImage",
+  "MSListStyleImage",
+  "OListStyleImage",
+  "listStylePosition",
+  "MozListStylePosition",
+  "WebkitListStylePosition",
+  "MSListStylePosition",
+  "OListStylePosition",
+  "listStyleType",
+  "MozListStyleType",
+  "WebkitListStyleType",
+  "MSListStyleType",
+  "OListStyleType",
+  "margin",
+  "MozMargin",
+  "WebkitMargin",
+  "MSMargin",
+  "OMargin",
+  "marginBlockEnd",
+  "MozMarginBlockEnd",
+  "WebkitMarginBlockEnd",
+  "MSMarginBlockEnd",
+  "OMarginBlockEnd",
+  "marginBlockStart",
+  "MozMarginBlockStart",
+  "WebkitMarginBlockStart",
+  "MSMarginBlockStart",
+  "OMarginBlockStart",
+  "marginBottom",
+  "MozMarginBottom",
+  "WebkitMarginBottom",
+  "MSMarginBottom",
+  "OMarginBottom",
+  "marginInlineEnd",
+  "MozMarginInlineEnd",
+  "WebkitMarginInlineEnd",
+  "MSMarginInlineEnd",
+  "OMarginInlineEnd",
+  "marginInlineStart",
+  "MozMarginInlineStart",
+  "WebkitMarginInlineStart",
+  "MSMarginInlineStart",
+  "OMarginInlineStart",
+  "marginLeft",
+  "MozMarginLeft",
+  "WebkitMarginLeft",
+  "MSMarginLeft",
+  "OMarginLeft",
+  "marginRight",
+  "MozMarginRight",
+  "WebkitMarginRight",
+  "MSMarginRight",
+  "OMarginRight",
+  "marginTop",
+  "MozMarginTop",
+  "WebkitMarginTop",
+  "MSMarginTop",
+  "OMarginTop",
+  "mask",
+  "MozMask",
+  "WebkitMask",
+  "MSMask",
+  "OMask",
+  "maskClip",
+  "MozMaskClip",
+  "WebkitMaskClip",
+  "MSMaskClip",
+  "OMaskClip",
+  "maskComposite",
+  "MozMaskComposite",
+  "WebkitMaskComposite",
+  "MSMaskComposite",
+  "OMaskComposite",
+  "maskImage",
+  "MozMaskImage",
+  "WebkitMaskImage",
+  "MSMaskImage",
+  "OMaskImage",
+  "maskMode",
+  "MozMaskMode",
+  "WebkitMaskMode",
+  "MSMaskMode",
+  "OMaskMode",
+  "maskOrigin",
+  "MozMaskOrigin",
+  "WebkitMaskOrigin",
+  "MSMaskOrigin",
+  "OMaskOrigin",
+  "maskPosition",
+  "MozMaskPosition",
+  "WebkitMaskPosition",
+  "MSMaskPosition",
+  "OMaskPosition",
+  "maskRepeat",
+  "MozMaskRepeat",
+  "WebkitMaskRepeat",
+  "MSMaskRepeat",
+  "OMaskRepeat",
+  "maskSize",
+  "MozMaskSize",
+  "WebkitMaskSize",
+  "MSMaskSize",
+  "OMaskSize",
+  "maskType",
+  "MozMaskType",
+  "WebkitMaskType",
+  "MSMaskType",
+  "OMaskType",
+  "maxHeight",
+  "MozMaxHeight",
+  "WebkitMaxHeight",
+  "MSMaxHeight",
+  "OMaxHeight",
+  "maxWidth",
+  "MozMaxWidth",
+  "WebkitMaxWidth",
+  "MSMaxWidth",
+  "OMaxWidth",
+  "minBlockSize",
+  "MozMinBlockSize",
+  "WebkitMinBlockSize",
+  "MSMinBlockSize",
+  "OMinBlockSize",
+  "minHeight",
+  "MozMinHeight",
+  "WebkitMinHeight",
+  "MSMinHeight",
+  "OMinHeight",
+  "minInlineSize",
+  "MozMinInlineSize",
+  "WebkitMinInlineSize",
+  "MSMinInlineSize",
+  "OMinInlineSize",
+  "minWidth",
+  "MozMinWidth",
+  "WebkitMinWidth",
+  "MSMinWidth",
+  "OMinWidth",
+  "mixBlendMode",
+  "MozMixBlendMode",
+  "WebkitMixBlendMode",
+  "MSMixBlendMode",
+  "OMixBlendMode",
+  "mm",
+  "MozMm",
+  "WebkitMm",
+  "MSMm",
+  "OMm",
+  "ms",
+  "MozMs",
+  "WebkitMs",
+  "MSMs",
+  "OMs",
+  "objectFit",
+  "MozObjectFit",
+  "WebkitObjectFit",
+  "MSObjectFit",
+  "OObjectFit",
+  "objectPosition",
+  "MozObjectPosition",
+  "WebkitObjectPosition",
+  "MSObjectPosition",
+  "OObjectPosition",
+  "offsetBlockEnd",
+  "MozOffsetBlockEnd",
+  "WebkitOffsetBlockEnd",
+  "MSOffsetBlockEnd",
+  "OOffsetBlockEnd",
+  "offsetBlockStart",
+  "MozOffsetBlockStart",
+  "WebkitOffsetBlockStart",
+  "MSOffsetBlockStart",
+  "OOffsetBlockStart",
+  "offsetInlineEnd",
+  "MozOffsetInlineEnd",
+  "WebkitOffsetInlineEnd",
+  "MSOffsetInlineEnd",
+  "OOffsetInlineEnd",
+  "offsetInlineStart",
+  "MozOffsetInlineStart",
+  "WebkitOffsetInlineStart",
+  "MSOffsetInlineStart",
+  "OOffsetInlineStart",
+  "opacity",
+  "MozOpacity",
+  "WebkitOpacity",
+  "MSOpacity",
+  "OOpacity",
+  "order",
+  "MozOrder",
+  "WebkitOrder",
+  "MSOrder",
+  "OOrder",
+  "orphans",
+  "MozOrphans",
+  "WebkitOrphans",
+  "MSOrphans",
+  "OOrphans",
+  "outline",
+  "MozOutline",
+  "WebkitOutline",
+  "MSOutline",
+  "OOutline",
+  "outlineColor",
+  "MozOutlineColor",
+  "WebkitOutlineColor",
+  "MSOutlineColor",
+  "OOutlineColor",
+  "outlineOffset",
+  "MozOutlineOffset",
+  "WebkitOutlineOffset",
+  "MSOutlineOffset",
+  "OOutlineOffset",
+  "outlineStyle",
+  "MozOutlineStyle",
+  "WebkitOutlineStyle",
+  "MSOutlineStyle",
+  "OOutlineStyle",
+  "outlineWidth",
+  "MozOutlineWidth",
+  "WebkitOutlineWidth",
+  "MSOutlineWidth",
+  "OOutlineWidth",
+  "overflow",
+  "MozOverflow",
+  "WebkitOverflow",
+  "MSOverflow",
+  "OOverflow",
+  "overflowWrap",
+  "MozOverflowWrap",
+  "WebkitOverflowWrap",
+  "MSOverflowWrap",
+  "OOverflowWrap",
+  "overflowX",
+  "MozOverflowX",
+  "WebkitOverflowX",
+  "MSOverflowX",
+  "OOverflowX",
+  "overflowY",
+  "MozOverflowY",
+  "WebkitOverflowY",
+  "MSOverflowY",
+  "OOverflowY",
+  "padding",
+  "MozPadding",
+  "WebkitPadding",
+  "MSPadding",
+  "OPadding",
+  "paddingBlockEnd",
+  "MozPaddingBlockEnd",
+  "WebkitPaddingBlockEnd",
+  "MSPaddingBlockEnd",
+  "OPaddingBlockEnd",
+  "paddingBlockStart",
+  "MozPaddingBlockStart",
+  "WebkitPaddingBlockStart",
+  "MSPaddingBlockStart",
+  "OPaddingBlockStart",
+  "paddingBottom",
+  "MozPaddingBottom",
+  "WebkitPaddingBottom",
+  "MSPaddingBottom",
+  "OPaddingBottom",
+  "paddingInlineEnd",
+  "MozPaddingInlineEnd",
+  "WebkitPaddingInlineEnd",
+  "MSPaddingInlineEnd",
+  "OPaddingInlineEnd",
+  "paddingInlineStart",
+  "MozPaddingInlineStart",
+  "WebkitPaddingInlineStart",
+  "MSPaddingInlineStart",
+  "OPaddingInlineStart",
+  "paddingLeft",
+  "MozPaddingLeft",
+  "WebkitPaddingLeft",
+  "MSPaddingLeft",
+  "OPaddingLeft",
+  "paddingRight",
+  "MozPaddingRight",
+  "WebkitPaddingRight",
+  "MSPaddingRight",
+  "OPaddingRight",
+  "paddingTop",
+  "MozPaddingTop",
+  "WebkitPaddingTop",
+  "MSPaddingTop",
+  "OPaddingTop",
+  "pageBreakAfter",
+  "MozPageBreakAfter",
+  "WebkitPageBreakAfter",
+  "MSPageBreakAfter",
+  "OPageBreakAfter",
+  "pageBreakBefore",
+  "MozPageBreakBefore",
+  "WebkitPageBreakBefore",
+  "MSPageBreakBefore",
+  "OPageBreakBefore",
+  "pageBreakInside",
+  "MozPageBreakInside",
+  "WebkitPageBreakInside",
+  "MSPageBreakInside",
+  "OPageBreakInside",
+  "pc",
+  "MozPc",
+  "WebkitPc",
+  "MSPc",
+  "OPc",
+  "perspective",
+  "MozPerspective",
+  "WebkitPerspective",
+  "MSPerspective",
+  "OPerspective",
+  "perspectiveOrigin",
+  "MozPerspectiveOrigin",
+  "WebkitPerspectiveOrigin",
+  "MSPerspectiveOrigin",
+  "OPerspectiveOrigin",
+  "pointerEvents",
+  "MozPointerEvents",
+  "WebkitPointerEvents",
+  "MSPointerEvents",
+  "OPointerEvents",
+  "position",
+  "MozPosition",
+  "WebkitPosition",
+  "MSPosition",
+  "OPosition",
+  "pt",
+  "MozPt",
+  "WebkitPt",
+  "MSPt",
+  "OPt",
+  "px",
+  "MozPx",
+  "WebkitPx",
+  "MSPx",
+  "OPx",
+  "q",
+  "MozQ",
+  "WebkitQ",
+  "MSQ",
+  "OQ",
+  "quotes",
+  "MozQuotes",
+  "WebkitQuotes",
+  "MSQuotes",
+  "OQuotes",
+  "rad",
+  "MozRad",
+  "WebkitRad",
+  "MSRad",
+  "ORad",
+  "rem",
+  "MozRem",
+  "WebkitRem",
+  "MSRem",
+  "ORem",
+  "resize",
+  "MozResize",
+  "WebkitResize",
+  "MSResize",
+  "OResize",
+  "revert",
+  "MozRevert",
+  "WebkitRevert",
+  "MSRevert",
+  "ORevert",
+  "right",
+  "MozRight",
+  "WebkitRight",
+  "MSRight",
+  "ORight",
+  "rubyAlign",
+  "MozRubyAlign",
+  "WebkitRubyAlign",
+  "MSRubyAlign",
+  "ORubyAlign",
+  "rubyMerge",
+  "MozRubyMerge",
+  "WebkitRubyMerge",
+  "MSRubyMerge",
+  "ORubyMerge",
+  "rubyPosition",
+  "MozRubyPosition",
+  "WebkitRubyPosition",
+  "MSRubyPosition",
+  "ORubyPosition",
+  "s",
+  "MozS",
+  "WebkitS",
+  "MSS",
+  "OS",
+  "scrollBehavior",
+  "MozScrollBehavior",
+  "WebkitScrollBehavior",
+  "MSScrollBehavior",
+  "OScrollBehavior",
+  "scrollSnapCoordinate",
+  "MozScrollSnapCoordinate",
+  "WebkitScrollSnapCoordinate",
+  "MSScrollSnapCoordinate",
+  "OScrollSnapCoordinate",
+  "scrollSnapDestination",
+  "MozScrollSnapDestination",
+  "WebkitScrollSnapDestination",
+  "MSScrollSnapDestination",
+  "OScrollSnapDestination",
+  "scrollSnapType",
+  "MozScrollSnapType",
+  "WebkitScrollSnapType",
+  "MSScrollSnapType",
+  "OScrollSnapType",
+  "shapeImageThreshold",
+  "MozShapeImageThreshold",
+  "WebkitShapeImageThreshold",
+  "MSShapeImageThreshold",
+  "OShapeImageThreshold",
+  "shapeMargin",
+  "MozShapeMargin",
+  "WebkitShapeMargin",
+  "MSShapeMargin",
+  "OShapeMargin",
+  "shapeOutside",
+  "MozShapeOutside",
+  "WebkitShapeOutside",
+  "MSShapeOutside",
+  "OShapeOutside",
+  "tabSize",
+  "MozTabSize",
+  "WebkitTabSize",
+  "MSTabSize",
+  "OTabSize",
+  "tableLayout",
+  "MozTableLayout",
+  "WebkitTableLayout",
+  "MSTableLayout",
+  "OTableLayout",
+  "textAlign",
+  "MozTextAlign",
+  "WebkitTextAlign",
+  "MSTextAlign",
+  "OTextAlign",
+  "textAlignLast",
+  "MozTextAlignLast",
+  "WebkitTextAlignLast",
+  "MSTextAlignLast",
+  "OTextAlignLast",
+  "textCombineUpright",
+  "MozTextCombineUpright",
+  "WebkitTextCombineUpright",
+  "MSTextCombineUpright",
+  "OTextCombineUpright",
+  "textDecoration",
+  "MozTextDecoration",
+  "WebkitTextDecoration",
+  "MSTextDecoration",
+  "OTextDecoration",
+  "textDecorationColor",
+  "MozTextDecorationColor",
+  "WebkitTextDecorationColor",
+  "MSTextDecorationColor",
+  "OTextDecorationColor",
+  "textDecorationLine",
+  "MozTextDecorationLine",
+  "WebkitTextDecorationLine",
+  "MSTextDecorationLine",
+  "OTextDecorationLine",
+  "textDecorationStyle",
+  "MozTextDecorationStyle",
+  "WebkitTextDecorationStyle",
+  "MSTextDecorationStyle",
+  "OTextDecorationStyle",
+  "textEmphasis",
+  "MozTextEmphasis",
+  "WebkitTextEmphasis",
+  "MSTextEmphasis",
+  "OTextEmphasis",
+  "textEmphasisColor",
+  "MozTextEmphasisColor",
+  "WebkitTextEmphasisColor",
+  "MSTextEmphasisColor",
+  "OTextEmphasisColor",
+  "textEmphasisPosition",
+  "MozTextEmphasisPosition",
+  "WebkitTextEmphasisPosition",
+  "MSTextEmphasisPosition",
+  "OTextEmphasisPosition",
+  "textEmphasisStyle",
+  "MozTextEmphasisStyle",
+  "WebkitTextEmphasisStyle",
+  "MSTextEmphasisStyle",
+  "OTextEmphasisStyle",
+  "textIndent",
+  "MozTextIndent",
+  "WebkitTextIndent",
+  "MSTextIndent",
+  "OTextIndent",
+  "textOrientation",
+  "MozTextOrientation",
+  "WebkitTextOrientation",
+  "MSTextOrientation",
+  "OTextOrientation",
+  "textOverflow",
+  "MozTextOverflow",
+  "WebkitTextOverflow",
+  "MSTextOverflow",
+  "OTextOverflow",
+  "textRendering",
+  "MozTextRendering",
+  "WebkitTextRendering",
+  "MSTextRendering",
+  "OTextRendering",
+  "textShadow",
+  "MozTextShadow",
+  "WebkitTextShadow",
+  "MSTextShadow",
+  "OTextShadow",
+  "textTransform",
+  "MozTextTransform",
+  "WebkitTextTransform",
+  "MSTextTransform",
+  "OTextTransform",
+  "textUnderlinePosition",
+  "MozTextUnderlinePosition",
+  "WebkitTextUnderlinePosition",
+  "MSTextUnderlinePosition",
+  "OTextUnderlinePosition",
+  "top",
+  "MozTop",
+  "WebkitTop",
+  "MSTop",
+  "OTop",
+  "touchAction",
+  "MozTouchAction",
+  "WebkitTouchAction",
+  "MSTouchAction",
+  "OTouchAction",
+  "transform",
+  "MozTransform",
+  "WebkitTransform",
+  "msTransform",
+  "OTransform",
+  "transformBox",
+  "MozTransformBox",
+  "WebkitTransformBox",
+  "MSTransformBox",
+  "OTransformBox",
+  "transformOrigin",
+  "MozTransformOrigin",
+  "WebkitTransformOrigin",
+  "MSTransformOrigin",
+  "OTransformOrigin",
+  "transformStyle",
+  "MozTransformStyle",
+  "WebkitTransformStyle",
+  "MSTransformStyle",
+  "OTransformStyle",
+  "transition",
+  "MozTransition",
+  "WebkitTransition",
+  "MSTransition",
+  "OTransition",
+  "transitionDelay",
+  "MozTransitionDelay",
+  "WebkitTransitionDelay",
+  "MSTransitionDelay",
+  "OTransitionDelay",
+  "transitionDuration",
+  "MozTransitionDuration",
+  "WebkitTransitionDuration",
+  "MSTransitionDuration",
+  "OTransitionDuration",
+  "transitionProperty",
+  "MozTransitionProperty",
+  "WebkitTransitionProperty",
+  "MSTransitionProperty",
+  "OTransitionProperty",
+  "transitionTimingFunction",
+  "MozTransitionTimingFunction",
+  "WebkitTransitionTimingFunction",
+  "MSTransitionTimingFunction",
+  "OTransitionTimingFunction",
+  "turn",
+  "MozTurn",
+  "WebkitTurn",
+  "MSTurn",
+  "OTurn",
+  "unicodeBidi",
+  "MozUnicodeBidi",
+  "WebkitUnicodeBidi",
+  "MSUnicodeBidi",
+  "OUnicodeBidi",
+  "unset",
+  "MozUnset",
+  "WebkitUnset",
+  "MSUnset",
+  "OUnset",
+  "verticalAlign",
+  "MozVerticalAlign",
+  "WebkitVerticalAlign",
+  "MSVerticalAlign",
+  "OVerticalAlign",
+  "vh",
+  "MozVh",
+  "WebkitVh",
+  "MSVh",
+  "OVh",
+  "visibility",
+  "MozVisibility",
+  "WebkitVisibility",
+  "MSVisibility",
+  "OVisibility",
+  "vmax",
+  "MozVmax",
+  "WebkitVmax",
+  "MSVmax",
+  "OVmax",
+  "vmin",
+  "MozVmin",
+  "WebkitVmin",
+  "MSVmin",
+  "OVmin",
+  "vw",
+  "MozVw",
+  "WebkitVw",
+  "MSVw",
+  "OVw",
+  "whiteSpace",
+  "MozWhiteSpace",
+  "WebkitWhiteSpace",
+  "MSWhiteSpace",
+  "OWhiteSpace",
+  "widows",
+  "MozWidows",
+  "WebkitWidows",
+  "MSWidows",
+  "OWidows",
+  "width",
+  "MozWidth",
+  "WebkitWidth",
+  "MSWidth",
+  "OWidth",
+  "willChange",
+  "MozWillChange",
+  "WebkitWillChange",
+  "MSWillChange",
+  "OWillChange",
+  "wordBreak",
+  "MozWordBreak",
+  "WebkitWordBreak",
+  "MSWordBreak",
+  "OWordBreak",
+  "wordSpacing",
+  "MozWordSpacing",
+  "WebkitWordSpacing",
+  "MSWordSpacing",
+  "OWordSpacing",
+  "wordWrap",
+  "MozWordWrap",
+  "WebkitWordWrap",
+  "MSWordWrap",
+  "OWordWrap",
+  "writingMode",
+  "MozWritingMode",
+  "WebkitWritingMode",
+  "MSWritingMode",
+  "OWritingMode",
+  "zIndex",
+  "MozZIndex",
+  "WebkitZIndex",
+  "MSZIndex",
+  "OZIndex",
+  "fontSize",
+  "MozFontSize",
+  "WebkitFontSize",
+  "MSFontSize",
+  "OFontSize",
+  "flex",
+  "MozFlex",
+  "WebkitFlex",
+  "MSFlex",
+  "OFlex",
+  "fr",
+  "MozFr",
+  "WebkitFr",
+  "MSFr",
+  "OFr",
+  "overflowScrolling",
+  "MozOverflowScrolling",
+  "WebkitOverflowScrolling",
+  "MSOverflowScrolling",
+  "OOverflowScrolling"
+]
+
+},{}],161:[function(require,module,exports){
+var properties = require('./css-properties.js');
+var React = require('react');
+
+module.exports = function(props, propName, componentName) {
+  var styles = props[propName];
+  if (!styles) {
+    return;
+  }
+
+  var failures = [];
+  Object.keys(styles).forEach(function(styleKey){
+    if (properties.indexOf(styleKey) === -1) {
+      failures.push(styleKey);
+    }
+  });
+  if (failures.length) {
+    throw new Error('Prop ' + propName + ' passed to ' + componentName + '. Has invalid keys ' + failures.join(', '));
+  }
+};
+
+module.exports.isRequired = function(props, propName, componentName) {
+  if (!props[propName]) {
+    throw new Error('Prop ' + propName + ' passed to ' + componentName + ' is required');
+  }
+  return module.exports(props, propName, componentName);
+};
+
+module.exports.supportingArrays = React.PropTypes.oneOfType([
+  React.PropTypes.arrayOf(module.exports),
+  module.exports
+]);
+
+
+},{"./css-properties.js":160,"react":undefined}],162:[function(require,module,exports){
 (function (process,global){
 (function (global, undefined) {
     "use strict";
@@ -17208,7 +20937,7 @@ process.umask = function() { return 0; };
 }(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":140}],142:[function(require,module,exports){
+},{"_process":158}],163:[function(require,module,exports){
 /**
  * UAParser.js v0.7.12
  * Lightweight JavaScript-based User-Agent string parser
@@ -18125,7 +21854,7 @@ process.umask = function() { return 0; };
 
 })(typeof window === 'object' ? window : this);
 
-},{}],143:[function(require,module,exports){
+},{}],164:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -18147,9 +21876,65 @@ var _react = (typeof window !== "undefined" ? window['React'] : typeof global !=
 
 var _react2 = _interopRequireDefault(_react);
 
+var _formsyReact = require('formsy-react');
+
+// eslint-disable-line import/no-unresolved
+
 var _draftJs = require('draft-js');
 
 // eslint-disable-line import/no-unresolved
+
+var _draftJsExportHtml = require('draft-js-export-html');
+
+var _reactStyleProptype = require('react-style-proptype');
+
+var _reactStyleProptype2 = _interopRequireDefault(_reactStyleProptype);
+
+// eslint-disable-line import/no-unresolved
+
+var messages = {
+	outputValueFormError: 'Wrong outputValueForm prop value in DraftjsFormsyInput. Needs to be \'html\' or \'raw\'.'
+};
+
+var defaultSyle = {
+	main: {},
+	label: {
+		paddingBottom: 6
+	},
+	help: {
+		padding: '6px 0',
+		color: 'rgba(0, 0, 0, 0.5)'
+	},
+	editor: {
+		boxSizing: 'border-box',
+		border: '1px solid #ddd',
+		cursor: 'text',
+		padding: '16px',
+		borderRadius: 2,
+		boxShadow: 'inset 0 1px 8px -3px #ababab',
+		background: '#fefefe'
+	},
+	editorError: {
+		boxSizing: 'border-box',
+		border: '1px solid #ff0000',
+		cursor: 'text',
+		padding: '16px',
+		borderRadius: 2,
+		boxShadow: 'inset 0 1px 8px -3px #ababab',
+		background: '#fefefe'
+	}
+};
+
+var _getStyle = function _getStyle(propsStyle) {
+	// inserts styling provided from props into style:
+	var style = defaultSyle;
+	if (propsStyle && typeof propsStyle === 'object') {
+		Object.entries(propsStyle).forEach(function (el) {
+			return style[el[0]] = el[1];
+		});
+	}
+	return style;
+};
 
 var DraftjsFormsyInput = (function (_React$Component) {
 	_inherits(DraftjsFormsyInput, _React$Component);
@@ -18159,6 +21944,10 @@ var DraftjsFormsyInput = (function (_React$Component) {
 
 		_get(Object.getPrototypeOf(DraftjsFormsyInput.prototype), 'constructor', this).call(this, props);
 
+		if (props.outputValueForm !== 'html' && props.outputValueForm !== 'raw') console.error(messages.outputValueFormError);
+
+		this.style = _getStyle(props.style);
+
 		this.state = {
 			editorState: _draftJs.EditorState.createEmpty()
 		};
@@ -18167,29 +21956,130 @@ var DraftjsFormsyInput = (function (_React$Component) {
 	_createClass(DraftjsFormsyInput, [{
 		key: '_onEditorChange',
 		value: function _onEditorChange(editorState) {
-			this.setState({
-				editorState: editorState
-			});
-			console.log('_onEditorChange');
+			if (this._checkEditorHasText()) {
+				this.setState({
+					editorState: editorState
+				});
+				this._setValue(editorState);
+			} else {
+				this.setState({
+					editorState: editorState
+				});
+				this.props.setValue(undefined);
+			}
+		}
+	}, {
+		key: '_setValue',
+		value: function _setValue(editorState) {
+			var _props = this.props;
+			var outputValueForm = _props.outputValueForm;
+			var setValue = _props.setValue;
+
+			switch (outputValueForm) {
+				case 'html':
+					{
+						setValue((0, _draftJsExportHtml.stateToHTML)(editorState.getCurrentContent()));
+						break;
+					}
+				case 'raw':
+					{
+						setValue((0, _draftJsExportHtml.stateToHTML)(editorState.getCurrentContent()));
+						break;
+					}
+				default:
+					console.error(messages.outputValueFormError);
+			}
+		}
+	}, {
+		key: '_checkEditorHasText',
+		value: function _checkEditorHasText() {
+			return this.state.editorState.getCurrentContent().hasText();
 		}
 	}, {
 		key: 'render',
 		value: function render() {
+			var _props2 = this.props;
+			var label = _props2.label;
+			var getErrorMessage = _props2.getErrorMessage;
+			var help = _props2.help;
+			var placeholder = _props2.placeholder;
+			var isRequired = _props2.isRequired;
+			var showRequired = _props2.showRequired;
+			var isFormSubmitted = _props2.isFormSubmitted;
 			var editorState = this.state.editorState;
 
-			return _react2['default'].createElement(_draftJs.Editor, {
-				editorState: editorState,
-				onChange: this._onEditorChange.bind(this)
-			});
+			var errorMessage = getErrorMessage();
+
+			return _react2['default'].createElement(
+				'div',
+				{ style: this.style.main },
+				label ? _react2['default'].createElement(
+					'div',
+					{ style: this.style.label },
+					label,
+					isRequired() ? ' *' : null
+				) : null,
+				_react2['default'].createElement(
+					'div',
+					{ style: showRequired() && isFormSubmitted() ? this.style.editorError : this.style.editor },
+					_react2['default'].createElement(_draftJs.Editor, {
+						editorState: editorState,
+						onChange: this._onEditorChange.bind(this),
+						placeholder: placeholder
+					})
+				),
+				_react2['default'].createElement(
+					'span',
+					null,
+					errorMessage
+				),
+				help ? _react2['default'].createElement(
+					'div',
+					{ style: this.style.help },
+					help
+				) : null
+			);
 		}
 	}]);
 
 	return DraftjsFormsyInput;
 })(_react2['default'].Component);
 
-exports['default'] = DraftjsFormsyInput;
+DraftjsFormsyInput.propTypes = {
+	// props recieved from formsy HOC:
+	setValue: _react2['default'].PropTypes.func.isRequired,
+	getValue: _react2['default'].PropTypes.func.isRequired,
+	getErrorMessage: _react2['default'].PropTypes.func.isRequired,
+	isRequired: _react2['default'].PropTypes.func,
+	// showError: React.PropTypes.func,
+	// showRequired: React.PropTypes.func.isRequired,
+	// showError: React.PropTypes.func.isRequired,
+
+	label: _react2['default'].PropTypes.string,
+	style: _react2['default'].PropTypes.shape({
+		main: _reactStyleProptype2['default'],
+		label: _reactStyleProptype2['default'],
+		help: _reactStyleProptype2['default'],
+		editor: _reactStyleProptype2['default']
+	}),
+	outputValueForm: _react2['default'].PropTypes.string,
+	// value: React.PropTypes.object,
+	// defaultValue: React.PropTypes.object,
+	placeholder: _react2['default'].PropTypes.string,
+	help: _react2['default'].PropTypes.string
+};
+
+DraftjsFormsyInput.defaultProps = {
+	label: null,
+	placeholder: '. . .',
+	style: null,
+	help: null,
+	outputValueForm: 'html'
+};
+
+exports['default'] = (0, _formsyReact.HOC)(DraftjsFormsyInput);
 module.exports = exports['default'];
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"draft-js":11}]},{},[143])(143)
+},{"draft-js":22,"draft-js-export-html":4,"formsy-react":153,"react-style-proptype":161}]},{},[164])(164)
 });

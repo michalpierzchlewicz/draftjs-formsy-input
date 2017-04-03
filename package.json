@@ -1,6 +1,6 @@
 {
   "name": "draftjs-formsy-input",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "draftjs-formsy-input",
   "main": "lib/DraftjsFormsyInput.js",
   "author": "Michał Pierzchlewicz",
@@ -14,7 +14,10 @@
   },
   "dependencies": {
     "classnames": "^2.1.2",
-    "draft-js": "^0.10.0"
+    "draft-js": "^0.10.0",
+    "draft-js-export-html": "^0.5.2",
+    "formsy-react": "^0.19.2",
+    "react-style-proptype": "^2.0.2"
   },
   "devDependencies": {
     "babel-eslint": "^4.1.3",

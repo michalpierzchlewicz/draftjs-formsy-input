@@ -1,10 +1,60 @@
 import React from 'react';
+import { HOC as formsyHOC } from 'formsy-react'; // eslint-disable-line import/no-unresolved
 import { Editor, EditorState, convertToRaw, convertFromRaw, ContentState } from 'draft-js'; // eslint-disable-line import/no-unresolved
+import { stateToHTML } from 'draft-js-export-html';
+import stylePropType from 'react-style-proptype'; // eslint-disable-line import/no-unresolved
+
+const messages = {
+	outputValueFormError: `Wrong outputValueForm prop value in DraftjsFormsyInput. Needs to be 'html' or 'raw'.`,
+};
+
+const defaultSyle = {
+	main: {},
+	label: {
+		paddingBottom: 6,
+	},
+	help: {
+		padding: '6px 0',
+		color: 'rgba(0, 0, 0, 0.5)',
+	},
+	editor: {
+		boxSizing: 'border-box',
+		border: '1px solid #ddd',
+		cursor: 'text',
+		padding: '16px',
+		borderRadius: 2,
+		boxShadow: 'inset 0 1px 8px -3px #ababab',
+		background: '#fefefe',
+	},
+	editorError: {
+		boxSizing: 'border-box',
+		border: '1px solid #ff0000',
+		cursor: 'text',
+		padding: '16px',
+		borderRadius: 2,
+		boxShadow: 'inset 0 1px 8px -3px #ababab',
+		background: '#fefefe',
+	},
+};
+
+const _getStyle = (propsStyle) => {
+	// inserts styling provided from props into style:
+	const style = defaultSyle;
+	if (propsStyle && typeof propsStyle === 'object') {
+		Object.entries(propsStyle).forEach(el => (style[el[0]] = el[1]));
+	}
+	return style;
+};
 
 class DraftjsFormsyInput extends React.Component {
 
 	constructor(props) {
 		super(props);
+
+		if (props.outputValueForm !== 'html' &&
+			props.outputValueForm !== 'raw') console.error(messages.outputValueFormError);
+
+		this.style = _getStyle(props.style);
 		
 		this.state = {
 			editorState: EditorState.createEmpty(),
@@ -12,21 +62,91 @@ class DraftjsFormsyInput extends React.Component {
 	}
 
 	_onEditorChange(editorState) {
-		this.setState({
-			editorState,
-		});
-		console.log('_onEditorChange');
+		if (this._checkEditorHasText()) {
+			this.setState({
+				editorState,
+			});
+			this._setValue(editorState);
+		} else {
+			this.setState({
+				editorState,
+			});
+			this.props.setValue(undefined);
+		}
+	}
+
+	_setValue(editorState) {
+		const { outputValueForm, setValue } = this.props;
+		switch(outputValueForm) {
+		case 'html': {
+			setValue(stateToHTML(editorState.getCurrentContent()));
+			break;
+		}
+		case 'raw': {
+			setValue(stateToHTML(editorState.getCurrentContent()));
+			break;
+		}
+		default:
+			console.error(messages.outputValueFormError);
+		}
+	}
+
+	_checkEditorHasText() {
+		return this.state.editorState.getCurrentContent().hasText();
 	}
 
 	render () {
+		const { label, getErrorMessage, help, placeholder, isRequired, showRequired, isFormSubmitted } = this.props;
 		const { editorState } = this.state;
+		const errorMessage = getErrorMessage();
+
 		return (
-			<Editor
-				editorState={editorState}
-				onChange={this._onEditorChange.bind(this)}
-			/>
+			<div style={this.style.main}>
+				{label ? <div style={this.style.label}>{label}{isRequired() ? ' *' : null}</div> : null}
+				<div style={showRequired() && isFormSubmitted() ? this.style.editorError : this.style.editor}>
+					<Editor
+						editorState={editorState}
+						onChange={this._onEditorChange.bind(this)}
+						placeholder={placeholder}
+					/>
+				</div>
+				<span>{errorMessage}</span>
+				{help ? <div style={this.style.help}>{help}</div> : null}
+			</div>
 		);
 	}
 }
 
-export default DraftjsFormsyInput;
+DraftjsFormsyInput.propTypes = {
+	// props recieved from formsy HOC:
+	setValue: React.PropTypes.func.isRequired,
+	getValue: React.PropTypes.func.isRequired,
+	getErrorMessage: React.PropTypes.func.isRequired,
+	isRequired: React.PropTypes.func,
+	// showError: React.PropTypes.func,
+	// showRequired: React.PropTypes.func.isRequired,
+	// showError: React.PropTypes.func.isRequired,
+
+	label: React.PropTypes.string,
+	style: React.PropTypes.shape({
+		main: stylePropType,
+		label: stylePropType,
+		help: stylePropType,
+		editor: stylePropType,
+	}),
+	outputValueForm: React.PropTypes.string,
+	// value: React.PropTypes.object,
+	// defaultValue: React.PropTypes.object,
+	placeholder: React.PropTypes.string,
+	help: React.PropTypes.string,
+};
+
+DraftjsFormsyInput.defaultProps = {
+	label: null,
+	placeholder: '. . .',
+	style: null,
+	help: null,
+	outputValueForm: 'html',
+};
+
+export default formsyHOC(DraftjsFormsyInput);
