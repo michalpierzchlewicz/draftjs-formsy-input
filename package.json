@@ -1,6 +1,6 @@
 {
   "name": "draftjs-formsy-input",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "draftjs-formsy-input",
   "main": "lib/DraftjsFormsyInput.js",
   "author": "Michał Pierzchlewicz",
