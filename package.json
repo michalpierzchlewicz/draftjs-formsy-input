@@ -16,6 +16,7 @@
     "classnames": "^2.1.2",
     "draft-js": "^0.10.0",
     "draft-js-export-html": "^0.5.2",
+    "draft-js-import-html": "^0.3.2",
     "formsy-react": "^0.19.2",
     "react-style-proptype": "^2.0.2"
   },

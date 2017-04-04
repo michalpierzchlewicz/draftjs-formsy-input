@@ -2,10 +2,11 @@ import React from 'react';
 import { HOC as formsyHOC } from 'formsy-react'; // eslint-disable-line import/no-unresolved
 import { Editor, EditorState, convertToRaw, convertFromRaw, ContentState } from 'draft-js'; // eslint-disable-line import/no-unresolved
 import { stateToHTML } from 'draft-js-export-html';
+import { stateFromHTML } from 'draft-js-import-html';
 import stylePropType from 'react-style-proptype'; // eslint-disable-line import/no-unresolved
 
 const messages = {
-	outputValueFormError: `Wrong outputValueForm prop value in DraftjsFormsyInput. Needs to be 'html' or 'raw'.`,
+	outputValueModeError: `Wrong outputValueMode prop value in DraftjsFormsyInput. Needs to be 'html' or 'raw'.`,
 };
 
 const defaultSyle = {
@@ -51,13 +52,15 @@ class DraftjsFormsyInput extends React.Component {
 	constructor(props) {
 		super(props);
 
-		if (props.outputValueForm !== 'html' &&
-			props.outputValueForm !== 'raw') console.error(messages.outputValueFormError);
+		if (props.outputValueMode !== 'html' &&
+			props.outputValueMode !== 'raw') console.error(messages.outputValueModeError);
 
 		this.style = _getStyle(props.style);
+
+		const value = props.getValue();
 		
 		this.state = {
-			editorState: EditorState.createEmpty(),
+			editorState: this._setEditorStateFromValue(value),
 		};
 	}
 
@@ -75,9 +78,29 @@ class DraftjsFormsyInput extends React.Component {
 		}
 	}
 
+	_setEditorStateFromValue(value) {
+		const { outputValueMode } = this.props;
+		let editorState = EditorState.createEmpty();
+		if (value) {
+			switch(outputValueMode) {
+			case 'html': {
+				editorState = EditorState.createWithContent(stateFromHTML(value));
+				break;
+			}
+			case 'raw': {
+				editorState = EditorState.createWithContent(convertFromRaw(value));
+				break;
+			}
+			default:
+				console.error(messages.outputValueModeError);
+			}
+		}
+		return editorState;
+	}
+
 	_setValue(editorState) {
-		const { outputValueForm, setValue } = this.props;
-		switch(outputValueForm) {
+		const { outputValueMode, setValue } = this.props;
+		switch(outputValueMode) {
 		case 'html': {
 			setValue(stateToHTML(editorState.getCurrentContent()));
 			break;
@@ -87,7 +110,7 @@ class DraftjsFormsyInput extends React.Component {
 			break;
 		}
 		default:
-			console.error(messages.outputValueFormError);
+			console.error(messages.outputValueModeError);
 		}
 	}
 
@@ -134,7 +157,7 @@ DraftjsFormsyInput.propTypes = {
 		help: stylePropType,
 		editor: stylePropType,
 	}),
-	outputValueForm: React.PropTypes.string,
+	outputValueMode: React.PropTypes.string,
 	// value: React.PropTypes.object,
 	// defaultValue: React.PropTypes.object,
 	placeholder: React.PropTypes.string,
@@ -146,7 +169,7 @@ DraftjsFormsyInput.defaultProps = {
 	placeholder: '. . .',
 	style: null,
 	help: null,
-	outputValueForm: 'html',
+	outputValueMode: 'html',
 };
 
 export default formsyHOC(DraftjsFormsyInput);
