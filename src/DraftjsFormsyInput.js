@@ -1,9 +1,12 @@
 import React from 'react';
 import { HOC as formsyHOC } from 'formsy-react'; // eslint-disable-line import/no-unresolved
-import { Editor, EditorState, convertToRaw, convertFromRaw, ContentState } from 'draft-js'; // eslint-disable-line import/no-unresolved
+import { EditorState, convertToRaw, convertFromRaw, ContentState } from 'draft-js'; // eslint-disable-line import/no-unresolved
+import Editor from 'draft-js-plugins-editor'; // eslint-disable-line import/no-unresolved
 import { stateToHTML } from 'draft-js-export-html';
 import { stateFromHTML } from 'draft-js-import-html';
 import stylePropType from 'react-style-proptype'; // eslint-disable-line import/no-unresolved
+
+
 
 const messages = {
 	outputValueModeError: `Wrong outputValueMode prop value in DraftjsFormsyInput. Needs to be 'html' or 'raw'.`,
@@ -119,7 +122,7 @@ class DraftjsFormsyInput extends React.Component {
 	}
 
 	render () {
-		const { label, getErrorMessage, help, placeholder, isRequired, showRequired, isFormSubmitted } = this.props;
+		const { label, getErrorMessage, help, placeholder, isRequired, showRequired, isFormSubmitted, plugins } = this.props;
 		const { editorState } = this.state;
 		const errorMessage = getErrorMessage();
 
@@ -131,6 +134,7 @@ class DraftjsFormsyInput extends React.Component {
 						editorState={editorState}
 						onChange={this._onEditorChange.bind(this)}
 						placeholder={placeholder}
+						plugins={plugins ? plugins : []}
 					/>
 				</div>
 				<span>{errorMessage}</span>
@@ -162,6 +166,7 @@ DraftjsFormsyInput.propTypes = {
 	// defaultValue: React.PropTypes.object,
 	placeholder: React.PropTypes.string,
 	help: React.PropTypes.string,
+	plugins: React.PropTypes.arrayOf(React.PropTypes.object),
 };
 
 DraftjsFormsyInput.defaultProps = {
@@ -170,6 +175,7 @@ DraftjsFormsyInput.defaultProps = {
 	style: null,
 	help: null,
 	outputValueMode: 'html',
+	plugins: null,
 };
 
 export default formsyHOC(DraftjsFormsyInput);
