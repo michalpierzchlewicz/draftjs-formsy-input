@@ -39,20 +39,20 @@ var DraftjsFormsyInput = require('draftjs-formsy-input');
 import DraftjsFormsyInput from ‘DraftjsFormsyInput’;
 
 <DraftjsFormsyInput
-	name="draftjsFormsyInput "
+    name="draftjsFormsyInput "
 /> 
 ```
 
 ### Properties
 
 * **name** _string_ [required] – inherited from Formsy input
-* ** label** _string_ – input label
-* ** help** _string_ – help info displayed below input
-* ** required** _boolean_ [default: false] – if input is required (used by a forsmy-rest **Form**)
-* ** style** _object_ – styling the input (more information below)
-* ** outputValueMode** _string_ [default: ‘html’] – ‘html’ or ‘raw’ output value format
-* ** value** _string_ – default value of the input (IMPORTANT: use with ** outputValueMode** prop correctly)
-* ** plugins ** _array_ – use the same as **plugin** prop in [draft-js-plugins ](https://github.com/draft-js-plugins/draft-js-plugins) **Editor** 
+* **label** _string_ – input label
+* **help** _string_ – help info displayed below input
+* **required** _boolean_ [default: false] – if input is required (used by a forsmy-rest **Form**)
+* **style** _object_ – styling the input (more information below)
+* **outputValueMode** _string_ [default: ‘html’] – ‘html’ or ‘raw’ output value format
+* **value** _string_ – default value of the input (IMPORTANT: use with ** outputValueMode** prop correctly)
+* **plugins ** _array_ – use the same as **plugin** prop in [draft-js-plugins ](https://github.com/draft-js-plugins/draft-js-plugins) **Editor** 
 
 ### Notes
 
