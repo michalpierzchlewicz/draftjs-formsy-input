@@ -67,6 +67,4 @@ To build, watch and serve the examples (which will also watch the component sour
 
 ## License
 
-__PUT LICENSE HERE__
-
-Copyright (c) 2017 Michał Pierzchlewicz.
+[MIT License](http://en.wikipedia.org/wiki/MIT_License) Copyright (c) 2017 Michał Pierzchlewicz.
