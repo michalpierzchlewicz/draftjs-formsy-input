@@ -1,6 +1,6 @@
 # draftjs-formsy-input
 
-__COMPONENT DESCRIPTION GOES HERE__
+This React component is to be used as a [draft.js](https://github.com/facebook/draft-js) input type for [formsy-react](https://github.com/christianalfoni/formsy-react). It is possible to use with [draft-js-plugins](https://github.com/draft-js-plugins/draft-js-plugins).
 
 
 ## Demo & Examples
@@ -30,17 +30,29 @@ npm install draftjs-formsy-input --save
 
 ## Usage
 
-__EXPLAIN USAGE HERE__
+To get started with using it, import **DraftjsFormsyInput** and insert it inside a forsmy-rest **Form** component.
 
 ```
+// pre ES6
 var DraftjsFormsyInput = require('draftjs-formsy-input');
+// ES6
+import DraftjsFormsyInput from ‘DraftjsFormsyInput’;
 
-<DraftjsFormsyInput>Example</DraftjsFormsyInput>
+<DraftjsFormsyInput
+	name="draftjsFormsyInput "
+/> 
 ```
 
 ### Properties
 
-* __DOCUMENT PROPERTIES HERE__
+* **name** _string_ [required] – inherited from Formsy input
+* ** label** _string_ – input label
+* ** help** _string_ – help info displayed below input
+* ** required** _boolean_ [default: false] – if input is required (used by a forsmy-rest **Form**)
+* ** style** _object_ – styling the input (more information below)
+* ** outputValueMode** _string_ [default: ‘html’] – ‘html’ or ‘raw’ output value format
+* ** value** _string_ – default value of the input (IMPORTANT: use with ** outputValueMode** prop correctly)
+* ** plugins ** _array_ – use the same as **plugin** prop in [draft-js-plugins ](https://github.com/draft-js-plugins/draft-js-plugins) **Editor** 
 
 ### Notes
 
@@ -58,4 +70,3 @@ To build, watch and serve the examples (which will also watch the component sour
 __PUT LICENSE HERE__
 
 Copyright (c) 2017 Michał Pierzchlewicz.
-
