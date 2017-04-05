@@ -109,7 +109,7 @@ class DraftjsFormsyInput extends React.Component {
 			break;
 		}
 		case 'raw': {
-			setValue(stateToHTML(editorState.getCurrentContent()));
+			setValue(convertToRaw(editorState.getCurrentContent()));
 			break;
 		}
 		default:
@@ -146,10 +146,10 @@ class DraftjsFormsyInput extends React.Component {
 
 DraftjsFormsyInput.propTypes = {
 	// props recieved from formsy HOC:
-	setValue: React.PropTypes.func.isRequired,
-	getValue: React.PropTypes.func.isRequired,
-	getErrorMessage: React.PropTypes.func.isRequired,
-	isRequired: React.PropTypes.func,
+	// setValue: React.PropTypes.func.isRequired,
+	// getValue: React.PropTypes.func.isRequired,
+	// getErrorMessage: React.PropTypes.func.isRequired,
+	// isRequired: React.PropTypes.func,
 	// showError: React.PropTypes.func,
 	// showRequired: React.PropTypes.func.isRequired,
 	// showError: React.PropTypes.func.isRequired,

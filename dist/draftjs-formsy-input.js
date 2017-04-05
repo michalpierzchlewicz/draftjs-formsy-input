@@ -28491,7 +28491,7 @@ var DraftjsFormsyInput = (function (_React$Component) {
 					}
 				case 'raw':
 					{
-						setValue((0, _draftJsExportHtml.stateToHTML)(editorState.getCurrentContent()));
+						setValue((0, _draftJs.convertToRaw)(editorState.getCurrentContent()));
 						break;
 					}
 				default:
@@ -28557,10 +28557,10 @@ var DraftjsFormsyInput = (function (_React$Component) {
 
 DraftjsFormsyInput.propTypes = {
 	// props recieved from formsy HOC:
-	setValue: _react2['default'].PropTypes.func.isRequired,
-	getValue: _react2['default'].PropTypes.func.isRequired,
-	getErrorMessage: _react2['default'].PropTypes.func.isRequired,
-	isRequired: _react2['default'].PropTypes.func,
+	// setValue: React.PropTypes.func.isRequired,
+	// getValue: React.PropTypes.func.isRequired,
+	// getErrorMessage: React.PropTypes.func.isRequired,
+	// isRequired: React.PropTypes.func,
 	// showError: React.PropTypes.func,
 	// showRequired: React.PropTypes.func.isRequired,
 	// showError: React.PropTypes.func.isRequired,
