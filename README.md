@@ -36,7 +36,7 @@ To get started with using it, import **DraftjsFormsyInput** and insert it inside
 // pre ES6
 var DraftjsFormsyInput = require('draftjs-formsy-input');
 // ES6
-import DraftjsFormsyInput from ‘DraftjsFormsyInput’;
+import DraftjsFormsyInput from 'draftjs-formsy-input';
 
 <DraftjsFormsyInput
     name="draftjsFormsyInput "
